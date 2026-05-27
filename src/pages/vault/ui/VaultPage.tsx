@@ -10,32 +10,11 @@ import { AppSidebar } from '@/widgets/app-sidebar';
 import { ItemDetailPanel } from '@/widgets/item-detail-panel';
 import { ItemList } from '@/widgets/item-list';
 import { VaultLayout } from '@/widgets/vault-layout';
+import { createLoginItem } from '@/features/create-item/api/createItem';
 
 type VaultPageProps = {
   onLock: () => void;
 };
-
-function createClientId() {
-  if (crypto.randomUUID) {
-    return crypto.randomUUID();
-  }
-
-  return `item-${Date.now()}`;
-}
-
-function createLoginItemDetail(input: CreateLoginItemInput): VaultItemDetail {
-  const id = createClientId();
-
-  return {
-    id,
-    type: 'login',
-    title: input.title,
-    description: input.website ?? 'Login',
-    username: input.username ?? '',
-    passwordMasked: '••••••••••••••••',
-    notes: input.notes,
-  };
-}
 
 function toItemSummary(item: VaultItemDetail): VaultItemSummary {
   return {
@@ -58,8 +37,8 @@ export function VaultPage({ onLock }: VaultPageProps) {
     [items, selectedItemId],
   );
 
-  function handleCreateLogin(input: CreateLoginItemInput) {
-    const newItem = createLoginItemDetail(input);
+  async function handleCreateLogin(input: CreateLoginItemInput) {
+    const newItem = await createLoginItem(input);
 
     setItems((currentItems) => [newItem, ...currentItems]);
     setSelectedItemId(newItem.id);

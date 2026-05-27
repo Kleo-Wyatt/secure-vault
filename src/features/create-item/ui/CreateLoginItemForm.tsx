@@ -8,7 +8,7 @@ import { Textarea } from '@/shared/ui/textarea';
 
 type CreateLoginItemFormProps = {
   onBack: () => void;
-  onCreate: (input: CreateLoginItemInput) => void;
+  onCreate: (input: CreateLoginItemInput) => Promise<void> | void;
 };
 
 export function CreateLoginItemForm({
@@ -20,31 +20,39 @@ export function CreateLoginItemForm({
   const [password, setPassword] = useState('');
   const [website, setWebsite] = useState('');
   const [notes, setNotes] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
-  const canSubmit = title.trim().length > 0 && password.length > 0;
+  const canSubmit =
+    title.trim().length > 0 && password.length > 0 && !isSubmitting;
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (!canSubmit) {
       return;
     }
 
-    onCreate({
-      title: title.trim(),
-      username: username.trim() || undefined,
-      password,
-      website: website.trim() || undefined,
-      notes: notes.trim() || undefined,
-    });
+    setIsSubmitting(true);
 
-    setTitle('');
-    setUsername('');
-    setPassword('');
-    setWebsite('');
-    setNotes('');
-    setIsPasswordVisible(false);
+    try {
+      await onCreate({
+        title: title.trim(),
+        username: username.trim() || undefined,
+        password,
+        website: website.trim() || undefined,
+        notes: notes.trim() || undefined,
+      });
+
+      setTitle('');
+      setUsername('');
+      setPassword('');
+      setWebsite('');
+      setNotes('');
+      setIsPasswordVisible(false);
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -145,7 +153,7 @@ export function CreateLoginItemForm({
 
       <div className="flex gap-2 border-t pt-4">
         <Button className="flex-1" type="submit" disabled={!canSubmit}>
-          Create login
+          {isSubmitting ? 'Creating...' : 'Create login'}
         </Button>
         <Button type="button" variant="outline" onClick={onBack}>
           Cancel

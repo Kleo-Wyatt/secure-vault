@@ -16,7 +16,7 @@ import {
 
 type CreateItemDialogProps = {
   onSelectType?: (type: VaultItemType) => void;
-  onCreateLogin?: (input: CreateLoginItemInput) => void;
+  onCreateLogin?: (input: CreateLoginItemInput) => Promise<void> | void;
 };
 
 const itemTypes: Array<{
@@ -73,8 +73,8 @@ export function CreateItemDialog({
       return (
         <CreateLoginItemForm
           onBack={() => setSelectedType(null)}
-          onCreate={(input) => {
-            onCreateLogin?.(input);
+          onCreate={async (input) => {
+            await onCreateLogin?.(input);
             handleClose();
           }}
         />
