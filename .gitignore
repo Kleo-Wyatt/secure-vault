@@ -22,3 +22,29 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Local vault files
+*.vault
+*.vaultbackup
+*.vault.tmp
+*.vault.lock
+
+# Secrets
+.env
+.env.*
+*.key
+*.pem
+*.p12
+*.seed
+*.secret
+*.token
+
+# Plaintext exports
+*.csv
+*.plaintext
+*.unencrypted
+
+# Crash dumps / sensitive diagnostics
+*.dmp
+*.dump
+*.heapsnapshot
