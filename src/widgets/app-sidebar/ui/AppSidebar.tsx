@@ -1,4 +1,4 @@
-import { Lock, ShieldCheck } from 'lucide-react';
+import { ShieldCheck } from 'lucide-react';
 
 import { Button } from '@/shared/ui/button';
 

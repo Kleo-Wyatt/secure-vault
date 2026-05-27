@@ -1,4 +1,5 @@
 mod commands;
+mod items;
 
 use commands::vault_commands::{ create_vault, lock_vault, unlock_vault };
 use commands::item_commands::create_item;

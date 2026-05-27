@@ -1,7 +1,6 @@
-import { Plus, Search } from 'lucide-react';
+import { Search } from 'lucide-react';
 
 import type { VaultItemSummary } from '@/entities/item';
-import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Input } from '@/shared/ui/input';
 import { cn } from '@/shared/lib/utils';
