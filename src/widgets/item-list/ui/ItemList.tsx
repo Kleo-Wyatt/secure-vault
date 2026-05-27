@@ -5,6 +5,7 @@ import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Input } from '@/shared/ui/input';
 import { cn } from '@/shared/lib/utils';
+import { CreateItemDialog } from '@/features/create-item';
 
 type ItemListProps = {
   items: VaultItemSummary[];
@@ -38,9 +39,7 @@ export function ItemList({
           <Input className="pl-8" placeholder="Search items..." />
         </div>
 
-        <Button size="icon" aria-label="Create item">
-          <Plus className="size-4" />
-        </Button>
+        <CreateItemDialog />
       </div>
 
       <div className="flex flex-col gap-2">
