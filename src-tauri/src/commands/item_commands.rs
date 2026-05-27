@@ -1,7 +1,9 @@
 use serde::Deserialize;
+use tauri::State;
 use uuid::Uuid;
 
 use crate::items::model::{ CreateLoginItemPayload, VaultItemDetail, VaultItemType };
+use crate::state::AppState;
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -11,11 +13,41 @@ pub struct CreateItemArgs {
 }
 
 #[tauri::command]
-pub async fn create_item(args: CreateItemArgs) -> Result<VaultItemDetail, String> {
-    match args.item_type.as_str() {
-        "login" => create_login_item(args.login),
-        _ => Err("Unsupported item type.".to_string()),
+pub async fn create_item(
+    state: State<'_, AppState>,
+    args: CreateItemArgs
+) -> Result<VaultItemDetail, String> {
+    {
+        let vault = state.vault.lock().map_err(|_| "Could not access vault state.".to_string())?;
+
+        if !vault.is_unlocked {
+            return Err("Vault is locked.".to_string());
+        }
     }
+
+    let item = match args.item_type.as_str() {
+        "login" => create_login_item(args.login)?,
+        _ => {
+            return Err("Unsupported item type.".to_string());
+        }
+    };
+
+    let mut vault = state.vault.lock().map_err(|_| "Could not access vault state.".to_string())?;
+
+    vault.items.insert(0, item.clone());
+
+    Ok(item)
+}
+
+#[tauri::command]
+pub async fn list_items(state: State<'_, AppState>) -> Result<Vec<VaultItemDetail>, String> {
+    let vault = state.vault.lock().map_err(|_| "Could not access vault state.".to_string())?;
+
+    if !vault.is_unlocked {
+        return Err("Vault is locked.".to_string());
+    }
+
+    Ok(vault.items.clone())
 }
 
 fn create_login_item(payload: Option<CreateLoginItemPayload>) -> Result<VaultItemDetail, String> {
