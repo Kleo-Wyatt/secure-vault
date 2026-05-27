@@ -1,0 +1,1 @@
+export { LockVaultButton } from "./ui/LockVaultButton";
