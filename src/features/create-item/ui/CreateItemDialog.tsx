@@ -1,6 +1,8 @@
+import { useState, type ComponentType } from 'react';
 import { KeyRound, LockKeyhole, NotebookText, ShieldCheck } from 'lucide-react';
 
 import type { VaultItemType } from '@/entities/item';
+import { CreateLoginItemForm } from '@/features/create-item/ui/CreateLoginItemForm';
 import { Button } from '@/shared/ui/button';
 import {
   Dialog,
@@ -19,7 +21,7 @@ const itemTypes: Array<{
   type: VaultItemType;
   title: string;
   description: string;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: ComponentType<{ className?: string }>;
 }> = [
   {
     type: 'login',
@@ -48,15 +50,83 @@ const itemTypes: Array<{
 ];
 
 export function CreateItemDialog({ onSelectType }: CreateItemDialogProps) {
-  function handleSelectType(type: VaultItemType) {
-    onSelectType?.(type);
+  const [isOpen, setIsOpen] = useState(false);
+  const [selectedType, setSelectedType] = useState<VaultItemType | null>(null);
 
-    // TODO: open dedicated create form for selected item type
-    console.log('selected item type:', type);
+  function handleSelectType(type: VaultItemType) {
+    setSelectedType(type);
+    onSelectType?.(type);
+  }
+
+  function handleClose() {
+    setIsOpen(false);
+    setSelectedType(null);
+  }
+
+  function renderContent() {
+    if (selectedType === 'login') {
+      return (
+        <CreateLoginItemForm
+          onBack={() => setSelectedType(null)}
+          onCreated={handleClose}
+        />
+      );
+    }
+
+    if (selectedType) {
+      return (
+        <div className="flex flex-col gap-4">
+          <p className="text-sm text-muted-foreground">
+            This item type will be implemented next.
+          </p>
+
+          <Button variant="outline" onClick={() => setSelectedType(null)}>
+            Back
+          </Button>
+        </div>
+      );
+    }
+
+    return (
+      <div className="grid gap-2">
+        {itemTypes.map((itemType) => {
+          const Icon = itemType.icon;
+
+          return (
+            <button
+              key={itemType.type}
+              type="button"
+              className="flex gap-3 rounded-xl border p-4 text-left transition hover:bg-muted/60"
+              onClick={() => handleSelectType(itemType.type)}
+            >
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-muted">
+                <Icon className="size-5" />
+              </div>
+
+              <div>
+                <p className="text-sm font-medium">{itemType.title}</p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {itemType.description}
+                </p>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+    );
   }
 
   return (
-    <Dialog>
+    <Dialog
+      open={isOpen}
+      onOpenChange={(nextOpen) => {
+        setIsOpen(nextOpen);
+
+        if (!nextOpen) {
+          setSelectedType(null);
+        }
+      }}
+    >
       <DialogTrigger asChild>
         <Button size="icon" aria-label="Create item">
           +
@@ -65,37 +135,17 @@ export function CreateItemDialog({ onSelectType }: CreateItemDialogProps) {
 
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Create new item</DialogTitle>
+          <DialogTitle>
+            {selectedType === 'login' ? 'Create login' : 'Create new item'}
+          </DialogTitle>
           <DialogDescription>
-            Choose what kind of encrypted item you want to store.
+            {selectedType === 'login'
+              ? 'Add credentials for an account or exchange.'
+              : 'Choose what kind of encrypted item you want to store.'}
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid gap-2">
-          {itemTypes.map((itemType) => {
-            const Icon = itemType.icon;
-
-            return (
-              <button
-                key={itemType.type}
-                type="button"
-                className="flex gap-3 rounded-xl border p-4 text-left transition hover:bg-muted/60"
-                onClick={() => handleSelectType(itemType.type)}
-              >
-                <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-muted">
-                  <Icon className="size-5" />
-                </div>
-
-                <div>
-                  <p className="text-sm font-medium">{itemType.title}</p>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    {itemType.description}
-                  </p>
-                </div>
-              </button>
-            );
-          })}
-        </div>
+        {renderContent()}
       </DialogContent>
     </Dialog>
   );
