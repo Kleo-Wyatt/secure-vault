@@ -2,6 +2,7 @@ import { useState, type ComponentType } from 'react';
 import { KeyRound, LockKeyhole, NotebookText, ShieldCheck } from 'lucide-react';
 
 import type { VaultItemType } from '@/entities/item';
+import type { CreateLoginItemInput } from '@/features/create-item/model/types';
 import { CreateLoginItemForm } from '@/features/create-item/ui/CreateLoginItemForm';
 import { Button } from '@/shared/ui/button';
 import {
@@ -15,6 +16,7 @@ import {
 
 type CreateItemDialogProps = {
   onSelectType?: (type: VaultItemType) => void;
+  onCreateLogin?: (input: CreateLoginItemInput) => void;
 };
 
 const itemTypes: Array<{
@@ -49,7 +51,10 @@ const itemTypes: Array<{
   },
 ];
 
-export function CreateItemDialog({ onSelectType }: CreateItemDialogProps) {
+export function CreateItemDialog({
+  onSelectType,
+  onCreateLogin,
+}: CreateItemDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedType, setSelectedType] = useState<VaultItemType | null>(null);
 
@@ -68,7 +73,10 @@ export function CreateItemDialog({ onSelectType }: CreateItemDialogProps) {
       return (
         <CreateLoginItemForm
           onBack={() => setSelectedType(null)}
-          onCreated={handleClose}
+          onCreate={(input) => {
+            onCreateLogin?.(input);
+            handleClose();
+          }}
         />
       );
     }

@@ -1,18 +1,19 @@
 import { useState } from 'react';
 import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
 
+import type { CreateLoginItemInput } from '@/features/create-item/model/types';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 import { Textarea } from '@/shared/ui/textarea';
 
 type CreateLoginItemFormProps = {
   onBack: () => void;
-  onCreated: () => void;
+  onCreate: (input: CreateLoginItemInput) => void;
 };
 
 export function CreateLoginItemForm({
   onBack,
-  onCreated,
+  onCreate,
 }: CreateLoginItemFormProps) {
   const [title, setTitle] = useState('');
   const [username, setUsername] = useState('');
@@ -30,17 +31,20 @@ export function CreateLoginItemForm({
       return;
     }
 
-    // TODO: call Tauri command create_item
-    console.log({
-      type: 'login',
-      title,
-      username,
+    onCreate({
+      title: title.trim(),
+      username: username.trim() || undefined,
       password,
-      website,
-      notes,
+      website: website.trim() || undefined,
+      notes: notes.trim() || undefined,
     });
 
-    onCreated();
+    setTitle('');
+    setUsername('');
+    setPassword('');
+    setWebsite('');
+    setNotes('');
+    setIsPasswordVisible(false);
   }
 
   return (
