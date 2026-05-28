@@ -6,6 +6,8 @@ import { revealSecret } from '@/features/reveal-secret';
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 
+import { clear, writeText } from '@tauri-apps/plugin-clipboard-manager';
+
 type ItemDetailPanelProps = {
   item?: VaultItemDetail;
 };
@@ -14,11 +16,11 @@ const REVEAL_TIMEOUT_MS = 20_000;
 const CLIPBOARD_TIMEOUT_MS = 20_000;
 
 async function writeTextToClipboard(value: string) {
-  await navigator.clipboard.writeText(value);
+  await writeText(value);
 }
 
 async function clearClipboard() {
-  await navigator.clipboard.writeText('');
+  await clear();
 }
 
 export function ItemDetailPanel({ item }: ItemDetailPanelProps) {
