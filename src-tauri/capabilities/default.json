@@ -3,10 +3,5 @@
   "identifier": "default",
   "description": "Capability for the main window",
   "windows": ["main"],
-  "permissions": [
-    "core:default",
-    "opener:default",
-    "clipboard-manager:allow-write-text",
-    "clipboard-manager:allow-clear"
-  ]
+  "permissions": ["core:default", "opener:default"]
 }
