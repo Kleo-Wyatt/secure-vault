@@ -1,6 +1,9 @@
+import { useEffect, useRef, useState } from 'react';
 import { AlertTriangle, ShieldCheck } from 'lucide-react';
 
 import type { VaultItemDetail } from '@/entities/item';
+import { revealSecret } from '@/features/reveal-secret';
+import { copySecret } from '@/features/copy-secret';
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 
@@ -8,7 +11,84 @@ type ItemDetailPanelProps = {
   item?: VaultItemDetail;
 };
 
+const REVEAL_TIMEOUT_MS = 20_000;
+
 export function ItemDetailPanel({ item }: ItemDetailPanelProps) {
+  const [revealedPassword, setRevealedPassword] = useState<string | null>(null);
+  const [isRevealingPassword, setIsRevealingPassword] = useState(false);
+  const [revealError, setRevealError] = useState<string | null>(null);
+  const [isCopyingPassword, setIsCopyingPassword] = useState(false);
+  const [copyMessage, setCopyMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    setRevealedPassword(null);
+    setRevealError(null);
+    setIsRevealingPassword(false);
+    setIsCopyingPassword(false);
+    setCopyMessage(null);
+  }, [item?.id]);
+
+  useEffect(() => {
+    if (!revealedPassword) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setRevealedPassword(null);
+    }, REVEAL_TIMEOUT_MS);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [revealedPassword]);
+
+  async function handleRevealPassword(itemId: string) {
+    if (isRevealingPassword) {
+      return;
+    }
+
+    setRevealError(null);
+    setIsRevealingPassword(true);
+
+    try {
+      const result = await revealSecret({
+        id: itemId,
+        secretType: 'password',
+      });
+
+      setRevealedPassword(result.value);
+    } catch {
+      setRevealedPassword(null);
+      setRevealError('Could not reveal password.');
+    } finally {
+      setIsRevealingPassword(false);
+    }
+  }
+
+  async function handleCopyPassword(itemId: string) {
+    if (isCopyingPassword) {
+      return;
+    }
+
+    setRevealError(null);
+    setCopyMessage(null);
+    setIsCopyingPassword(true);
+
+    try {
+      await copySecret({
+        id: itemId,
+        secretType: 'password',
+      });
+
+      setCopyMessage('Copied. Clipboard will be cleared after 20 seconds.');
+    } catch {
+      setCopyMessage(null);
+      setRevealError('Could not copy password.');
+    } finally {
+      setIsCopyingPassword(false);
+    }
+  }
+
   if (!item) {
     return (
       <section className="p-6">
@@ -42,18 +122,69 @@ export function ItemDetailPanel({ item }: ItemDetailPanelProps) {
 
             <div>
               <p className="text-xs text-muted-foreground">Password</p>
-              <div className="mt-2 flex items-center gap-2">
-                <code className="rounded-md bg-muted px-2 py-1 text-sm">
+
+              {revealedPassword ? (
+                <input
+                  className="mt-2 h-10 w-full rounded-lg border bg-muted/40 px-3 font-mono text-sm outline-none selection:bg-primary selection:text-primary-foreground"
+                  value={revealedPassword}
+                  spellCheck={false}
+                  readOnly
+                  aria-label="Revealed password"
+                  onFocus={(event) => event.currentTarget.select()}
+                />
+              ) : (
+                <code className="mt-2 block rounded-lg border bg-muted/40 px-3 py-2 font-mono text-sm">
                   {item.passwordMasked}
                 </code>
-                <Button variant="outline" size="sm">
-                  Copy 20s
-                </Button>
-                <Button variant="ghost" size="sm">
-                  Reveal
+              )}
+
+              <div className="mt-2 flex flex-wrap gap-2">
+                {revealedPassword ? (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setRevealedPassword(null)}
+                  >
+                    Hide
+                  </Button>
+                ) : (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleRevealPassword(item.id)}
+                    disabled={isRevealingPassword}
+                  >
+                    {isRevealingPassword ? 'Revealing...' : 'Reveal'}
+                  </Button>
+                )}
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleCopyPassword(item.id)}
+                  disabled={isCopyingPassword}
+                >
+                  {isCopyingPassword ? 'Copying...' : 'Copy'}
                 </Button>
               </div>
+
+              {revealedPassword ? (
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Password will be hidden automatically after 20 seconds. Focus
+                  the field to select and copy the full value.
+                </p>
+              ) : null}
+
+              {revealError ? (
+                <p className="mt-2 text-xs text-destructive">{revealError}</p>
+              ) : null}
             </div>
+
+            {copyMessage ? (
+              <p className="mt-2 text-xs text-muted-foreground">
+                {copyMessage}
+              </p>
+            ) : null}
 
             {item.totpCode ? (
               <div>
