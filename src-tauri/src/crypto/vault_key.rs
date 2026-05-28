@@ -9,6 +9,8 @@ pub const VAULT_KEY_LEN: usize = 32;
 pub const NONCE_LEN: usize = 24;
 pub const ENCRYPTION_ALGORITHM: &str = "XChaCha20-Poly1305";
 
+pub type VaultKey = [u8; VAULT_KEY_LEN];
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct EncryptedVaultKey {
@@ -17,13 +19,13 @@ pub struct EncryptedVaultKey {
     pub ciphertext: String,
 }
 
-pub fn generate_vault_key() -> [u8; VAULT_KEY_LEN] {
+pub fn generate_vault_key() -> VaultKey {
     XChaCha20Poly1305::generate_key(&mut OsRng).into()
 }
 
 pub fn encrypt_vault_key(
-    vault_key: &[u8; VAULT_KEY_LEN],
-    key_encryption_key: &[u8; VAULT_KEY_LEN],
+    vault_key: &VaultKey,
+    key_encryption_key: &VaultKey,
 ) -> Result<EncryptedVaultKey, String> {
     let cipher = XChaCha20Poly1305::new(Key::from_slice(key_encryption_key));
     let nonce = XChaCha20Poly1305::generate_nonce(&mut OsRng);
@@ -41,8 +43,8 @@ pub fn encrypt_vault_key(
 
 pub fn decrypt_vault_key(
     encrypted_vault_key: &EncryptedVaultKey,
-    key_encryption_key: &[u8; VAULT_KEY_LEN],
-) -> Result<[u8; VAULT_KEY_LEN], String> {
+    key_encryption_key: &VaultKey,
+) -> Result<VaultKey, String> {
     if encrypted_vault_key.algorithm != ENCRYPTION_ALGORITHM {
         return Err("Unsupported vault key encryption algorithm.".to_string());
     }

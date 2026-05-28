@@ -2,7 +2,7 @@ use serde::Deserialize;
 use tauri::State;
 use uuid::Uuid;
 
-use crate::items::model::{ CreateLoginItemPayload, VaultItemDetail, VaultItemType };
+use crate::items::model::{CreateLoginItemPayload, VaultItemDetail, VaultItemType};
 use crate::state::AppState;
 
 #[derive(Debug, Deserialize)]
@@ -15,14 +15,15 @@ pub struct CreateItemArgs {
 #[tauri::command]
 pub async fn create_item(
     state: State<'_, AppState>,
-    args: CreateItemArgs
+    args: CreateItemArgs,
 ) -> Result<VaultItemDetail, String> {
     {
-        let vault = state.vault.lock().map_err(|_| "Could not access vault state.".to_string())?;
+        let vault = state
+            .vault
+            .lock()
+            .map_err(|_| "Could not access vault state.".to_string())?;
 
-        if !vault.is_unlocked {
-            return Err("Vault is locked.".to_string());
-        }
+        vault.require_unlocked()?;
     }
 
     let item = match args.item_type.as_str() {
@@ -32,7 +33,10 @@ pub async fn create_item(
         }
     };
 
-    let mut vault = state.vault.lock().map_err(|_| "Could not access vault state.".to_string())?;
+    let mut vault = state
+        .vault
+        .lock()
+        .map_err(|_| "Could not access vault state.".to_string())?;
 
     vault.items.insert(0, item.clone());
 
@@ -41,11 +45,12 @@ pub async fn create_item(
 
 #[tauri::command]
 pub async fn list_items(state: State<'_, AppState>) -> Result<Vec<VaultItemDetail>, String> {
-    let vault = state.vault.lock().map_err(|_| "Could not access vault state.".to_string())?;
+    let vault = state
+        .vault
+        .lock()
+        .map_err(|_| "Could not access vault state.".to_string())?;
 
-    if !vault.is_unlocked {
-        return Err("Vault is locked.".to_string());
-    }
+    vault.require_unlocked()?;
 
     Ok(vault.items.clone())
 }
@@ -68,18 +73,23 @@ fn create_login_item(payload: Option<CreateLoginItemPayload>) -> Result<VaultIte
     // TODO: encrypt and persist item payload.
     // IMPORTANT: never log login.password.
 
-    let description = login.website
+    let description = login
+        .website
         .as_deref()
         .map(str::trim)
         .filter(|value| !value.is_empty())
         .unwrap_or("Login")
         .to_string();
 
-    let username = login.username
+    let username = login
+        .username
         .map(|value| value.trim().to_string())
         .filter(|value| !value.is_empty());
 
-    let notes = login.notes.map(|value| value.trim().to_string()).filter(|value| !value.is_empty());
+    let notes = login
+        .notes
+        .map(|value| value.trim().to_string())
+        .filter(|value| !value.is_empty());
 
     Ok(VaultItemDetail {
         id: Uuid::new_v4().to_string(),

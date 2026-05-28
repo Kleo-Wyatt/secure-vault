@@ -78,8 +78,7 @@ pub async fn create_vault(
         .lock()
         .map_err(|_| "Could not access vault state.".to_string())?;
 
-    vault.is_unlocked = true;
-    vault.items.clear();
+    vault.unlock(vault_key);
 
     Ok(VaultCommandResult {
         success: true,
@@ -118,7 +117,7 @@ pub async fn unlock_vault(
     let key_encryption_key = derive_key_encryption_key(&args.master_password, &salt, &kdf_params)
         .map_err(|_| "Could not unlock vault.".to_string())?;
 
-    decrypt_vault_key(&vault_file.encrypted_vault_key, &key_encryption_key)
+    let vault_key = decrypt_vault_key(&vault_file.encrypted_vault_key, &key_encryption_key)
         .map_err(|_| "Could not unlock vault.".to_string())?;
 
     let mut vault = state
@@ -126,8 +125,7 @@ pub async fn unlock_vault(
         .lock()
         .map_err(|_| "Could not access vault state.".to_string())?;
 
-    vault.is_unlocked = true;
-    vault.items.clear();
+    vault.unlock(vault_key);
 
     Ok(VaultCommandResult {
         success: true,
@@ -142,8 +140,7 @@ pub async fn lock_vault(state: State<'_, AppState>) -> Result<VaultCommandResult
         .lock()
         .map_err(|_| "Could not access vault state.".to_string())?;
 
-    vault.is_unlocked = false;
-    vault.items.clear();
+    vault.lock();
 
     Ok(VaultCommandResult {
         success: true,
