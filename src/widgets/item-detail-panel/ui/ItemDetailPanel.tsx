@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { AlertTriangle, ShieldCheck } from 'lucide-react';
 
 import type { VaultItemDetail } from '@/entities/item';
@@ -11,17 +11,61 @@ type ItemDetailPanelProps = {
 };
 
 const REVEAL_TIMEOUT_MS = 20_000;
+const CLIPBOARD_TIMEOUT_MS = 20_000;
+
+async function writeTextToClipboard(value: string) {
+  await navigator.clipboard.writeText(value);
+}
+
+async function clearClipboard() {
+  await navigator.clipboard.writeText('');
+}
 
 export function ItemDetailPanel({ item }: ItemDetailPanelProps) {
   const [revealedPassword, setRevealedPassword] = useState<string | null>(null);
   const [isRevealingPassword, setIsRevealingPassword] = useState(false);
   const [revealError, setRevealError] = useState<string | null>(null);
+  const [isCopyingPassword, setIsCopyingPassword] = useState(false);
+  const [copyMessage, setCopyMessage] = useState<string | null>(null);
+  const copiedPasswordRef = useRef<string | null>(null);
+  const clipboardTimeoutRef = useRef<number | null>(null);
+
+  function clearClipboardTimer() {
+    if (clipboardTimeoutRef.current !== null) {
+      window.clearTimeout(clipboardTimeoutRef.current);
+      clipboardTimeoutRef.current = null;
+    }
+  }
 
   useEffect(() => {
+    const copiedPassword = copiedPasswordRef.current;
+
+    clearClipboardTimer();
+    copiedPasswordRef.current = null;
+
+    if (copiedPassword) {
+      void clearClipboard();
+    }
+
     setRevealedPassword(null);
     setRevealError(null);
     setIsRevealingPassword(false);
+    setIsCopyingPassword(false);
+    setCopyMessage(null);
   }, [item?.id]);
+
+  useEffect(() => {
+    return () => {
+      const copiedPassword = copiedPasswordRef.current;
+
+      clearClipboardTimer();
+      copiedPasswordRef.current = null;
+
+      if (copiedPassword) {
+        void clearClipboard();
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (!revealedPassword) {
@@ -57,6 +101,46 @@ export function ItemDetailPanel({ item }: ItemDetailPanelProps) {
       setRevealError('Could not reveal password.');
     } finally {
       setIsRevealingPassword(false);
+    }
+  }
+
+  async function handleCopyPassword(itemId: string) {
+    if (isCopyingPassword) {
+      return;
+    }
+
+    setRevealError(null);
+    setCopyMessage(null);
+    setIsCopyingPassword(true);
+
+    try {
+      const result = await revealSecret({
+        id: itemId,
+        secretType: 'password',
+      });
+
+      await writeTextToClipboard(result.value);
+
+      clearClipboardTimer();
+      copiedPasswordRef.current = result.value;
+      setCopyMessage('Copied. Clipboard will be cleared after 20 seconds.');
+
+      clipboardTimeoutRef.current = window.setTimeout(() => {
+        const copiedPassword = copiedPasswordRef.current;
+
+        copiedPasswordRef.current = null;
+        clipboardTimeoutRef.current = null;
+        setCopyMessage(null);
+
+        if (copiedPassword) {
+          void clearClipboard();
+        }
+      }, CLIPBOARD_TIMEOUT_MS);
+    } catch {
+      setCopyMessage(null);
+      setRevealError('Could not copy password.');
+    } finally {
+      setIsCopyingPassword(false);
     }
   }
 
@@ -128,6 +212,15 @@ export function ItemDetailPanel({ item }: ItemDetailPanelProps) {
                     {isRevealingPassword ? 'Revealing...' : 'Reveal'}
                   </Button>
                 )}
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleCopyPassword(item.id)}
+                  disabled={isCopyingPassword}
+                >
+                  {isCopyingPassword ? 'Copying...' : 'Copy'}
+                </Button>
               </div>
 
               {revealedPassword ? (
@@ -141,6 +234,12 @@ export function ItemDetailPanel({ item }: ItemDetailPanelProps) {
                 <p className="mt-2 text-xs text-destructive">{revealError}</p>
               ) : null}
             </div>
+
+            {copyMessage ? (
+              <p className="mt-2 text-xs text-muted-foreground">
+                {copyMessage}
+              </p>
+            ) : null}
 
             {item.totpCode ? (
               <div>
