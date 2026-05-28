@@ -1,11 +1,13 @@
 use std::fs;
 
 use chrono::Utc;
-use serde::{ Deserialize, Serialize };
-use tauri::{ Manager, State };
+use serde::{Deserialize, Serialize};
+use tauri::{Manager, State};
 
+use crate::crypto::kdf::{derive_key_encryption_key, generate_kdf_salt, KdfParams};
+use crate::crypto::vault_key::{decrypt_vault_key, encrypt_vault_key, generate_vault_key};
 use crate::state::AppState;
-use crate::vault::format::VaultFile;
+use crate::vault::format::{VaultFile, VaultKdfConfig};
 use crate::vault::paths::default_vault_path;
 
 #[derive(Debug, Deserialize)]
@@ -31,7 +33,7 @@ pub struct VaultCommandResult {
 pub async fn create_vault(
     app: tauri::AppHandle,
     state: State<'_, AppState>,
-    args: CreateVaultArgs
+    args: CreateVaultArgs,
 ) -> Result<VaultCommandResult, String> {
     if args.master_password.len() < 12 {
         return Err("Master password is too short.".to_string());
@@ -42,8 +44,7 @@ pub async fn create_vault(
         .app_data_dir()
         .map_err(|_| "Could not resolve app data directory.".to_string())?;
 
-    fs
-        ::create_dir_all(&app_data_dir)
+    fs::create_dir_all(&app_data_dir)
         .map_err(|_| "Could not create app data directory.".to_string())?;
 
     let vault_path = default_vault_path(app_data_dir);
@@ -52,16 +53,30 @@ pub async fn create_vault(
         return Err("Vault file already exists.".to_string());
     }
 
-    let now = Utc::now().to_rfc3339();
-    let vault_file = VaultFile::empty(now);
+    let kdf_params = KdfParams::default_interactive();
+    let salt = generate_kdf_salt();
 
-    let vault_json = serde_json
-        ::to_string_pretty(&vault_file)
+    let key_encryption_key = derive_key_encryption_key(&args.master_password, &salt, &kdf_params)?;
+
+    let vault_key = generate_vault_key();
+    let encrypted_vault_key = encrypt_vault_key(&vault_key, &key_encryption_key)?;
+
+    let now = Utc::now().to_rfc3339();
+    let vault_file = VaultFile::empty(
+        now,
+        VaultKdfConfig::from_parts(&kdf_params, &salt),
+        encrypted_vault_key,
+    );
+
+    let vault_json = serde_json::to_string_pretty(&vault_file)
         .map_err(|_| "Could not serialize vault file.".to_string())?;
 
     fs::write(&vault_path, vault_json).map_err(|_| "Could not write vault file.".to_string())?;
 
-    let mut vault = state.vault.lock().map_err(|_| "Could not access vault state.".to_string())?;
+    let mut vault = state
+        .vault
+        .lock()
+        .map_err(|_| "Could not access vault state.".to_string())?;
 
     vault.is_unlocked = true;
     vault.items.clear();
@@ -76,7 +91,7 @@ pub async fn create_vault(
 pub async fn unlock_vault(
     app: tauri::AppHandle,
     state: State<'_, AppState>,
-    args: UnlockVaultArgs
+    args: UnlockVaultArgs,
 ) -> Result<VaultCommandResult, String> {
     if args.master_password.is_empty() {
         return Err("Master password is required.".to_string());
@@ -89,17 +104,27 @@ pub async fn unlock_vault(
 
     let vault_path = default_vault_path(app_data_dir);
 
-    let vault_json = fs
-        ::read_to_string(&vault_path)
-        .map_err(|_| "Could not read vault file.".to_string())?;
+    let vault_json =
+        fs::read_to_string(&vault_path).map_err(|_| "Could not read vault file.".to_string())?;
 
-    let vault_file: VaultFile = serde_json
-        ::from_str(&vault_json)
-        .map_err(|_| "Could not parse vault file.".to_string())?;
+    let vault_file: VaultFile =
+        serde_json::from_str(&vault_json).map_err(|_| "Could not parse vault file.".to_string())?;
 
     vault_file.validate()?;
 
-    let mut vault = state.vault.lock().map_err(|_| "Could not access vault state.".to_string())?;
+    let salt = vault_file.kdf.decode_salt()?;
+    let kdf_params = vault_file.kdf.to_params();
+
+    let key_encryption_key = derive_key_encryption_key(&args.master_password, &salt, &kdf_params)
+        .map_err(|_| "Could not unlock vault.".to_string())?;
+
+    decrypt_vault_key(&vault_file.encrypted_vault_key, &key_encryption_key)
+        .map_err(|_| "Could not unlock vault.".to_string())?;
+
+    let mut vault = state
+        .vault
+        .lock()
+        .map_err(|_| "Could not access vault state.".to_string())?;
 
     vault.is_unlocked = true;
     vault.items.clear();
@@ -112,7 +137,10 @@ pub async fn unlock_vault(
 
 #[tauri::command]
 pub async fn lock_vault(state: State<'_, AppState>) -> Result<VaultCommandResult, String> {
-    let mut vault = state.vault.lock().map_err(|_| "Could not access vault state.".to_string())?;
+    let mut vault = state
+        .vault
+        .lock()
+        .map_err(|_| "Could not access vault state.".to_string())?;
 
     vault.is_unlocked = false;
     vault.items.clear();
