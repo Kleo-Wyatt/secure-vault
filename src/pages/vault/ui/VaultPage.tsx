@@ -1,16 +1,13 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
-import {
-  mockVaultItemDetails,
-  type VaultItemDetail,
-  type VaultItemSummary,
-} from '@/entities/item';
+import { type VaultItemDetail, type VaultItemSummary } from '@/entities/item';
 import type { CreateLoginItemInput } from '@/features/create-item';
+import { createLoginItem } from '@/features/create-item/api/createItem';
+import { listItems } from '@/features/list-items';
 import { AppSidebar } from '@/widgets/app-sidebar';
 import { ItemDetailPanel } from '@/widgets/item-detail-panel';
 import { ItemList } from '@/widgets/item-list';
 import { VaultLayout } from '@/widgets/vault-layout';
-import { createLoginItem } from '@/features/create-item/api/createItem';
 
 type VaultPageProps = {
   onLock: () => void;
@@ -27,8 +24,54 @@ function toItemSummary(item: VaultItemDetail): VaultItemSummary {
 }
 
 export function VaultPage({ onLock }: VaultPageProps) {
-  const [items, setItems] = useState<VaultItemDetail[]>(mockVaultItemDetails);
-  const [selectedItemId, setSelectedItemId] = useState(items[0]?.id ?? '');
+  const [items, setItems] = useState<VaultItemDetail[]>([]);
+  const [selectedItemId, setSelectedItemId] = useState('');
+  const [isLoadingItems, setIsLoadingItems] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadItems() {
+      setIsLoadingItems(true);
+
+      try {
+        const loadedItems = await listItems();
+
+        if (!isMounted) {
+          return;
+        }
+
+        setItems(loadedItems);
+        setSelectedItemId((currentSelectedId) => {
+          if (
+            currentSelectedId &&
+            loadedItems.some((item) => item.id === currentSelectedId)
+          ) {
+            return currentSelectedId;
+          }
+
+          return loadedItems[0]?.id ?? '';
+        });
+      } catch {
+        if (!isMounted) {
+          return;
+        }
+
+        setItems([]);
+        setSelectedItemId('');
+      } finally {
+        if (isMounted) {
+          setIsLoadingItems(false);
+        }
+      }
+    }
+
+    void loadItems();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const itemSummaries = useMemo(() => items.map(toItemSummary), [items]);
 
@@ -55,7 +98,15 @@ export function VaultPage({ onLock }: VaultPageProps) {
           onCreateLogin={handleCreateLogin}
         />
       }
-      detailPanel={<ItemDetailPanel item={selectedItem} />}
+      detailPanel={
+        isLoadingItems ? (
+          <div className="flex h-full items-center justify-center p-6 text-sm text-muted-foreground">
+            Loading vault items...
+          </div>
+        ) : (
+          <ItemDetailPanel item={selectedItem} />
+        )
+      }
     />
   );
 }
