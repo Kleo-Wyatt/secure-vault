@@ -3,25 +3,15 @@ import { AlertTriangle, ShieldCheck } from 'lucide-react';
 
 import type { VaultItemDetail } from '@/entities/item';
 import { revealSecret } from '@/features/reveal-secret';
+import { copySecret } from '@/features/copy-secret';
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
-
-import { clear, writeText } from '@tauri-apps/plugin-clipboard-manager';
 
 type ItemDetailPanelProps = {
   item?: VaultItemDetail;
 };
 
 const REVEAL_TIMEOUT_MS = 20_000;
-const CLIPBOARD_TIMEOUT_MS = 20_000;
-
-async function writeTextToClipboard(value: string) {
-  await writeText(value);
-}
-
-async function clearClipboard() {
-  await clear();
-}
 
 export function ItemDetailPanel({ item }: ItemDetailPanelProps) {
   const [revealedPassword, setRevealedPassword] = useState<string | null>(null);
@@ -29,45 +19,14 @@ export function ItemDetailPanel({ item }: ItemDetailPanelProps) {
   const [revealError, setRevealError] = useState<string | null>(null);
   const [isCopyingPassword, setIsCopyingPassword] = useState(false);
   const [copyMessage, setCopyMessage] = useState<string | null>(null);
-  const copiedPasswordRef = useRef<string | null>(null);
-  const clipboardTimeoutRef = useRef<number | null>(null);
-
-  function clearClipboardTimer() {
-    if (clipboardTimeoutRef.current !== null) {
-      window.clearTimeout(clipboardTimeoutRef.current);
-      clipboardTimeoutRef.current = null;
-    }
-  }
 
   useEffect(() => {
-    const copiedPassword = copiedPasswordRef.current;
-
-    clearClipboardTimer();
-    copiedPasswordRef.current = null;
-
-    if (copiedPassword) {
-      void clearClipboard();
-    }
-
     setRevealedPassword(null);
     setRevealError(null);
     setIsRevealingPassword(false);
     setIsCopyingPassword(false);
     setCopyMessage(null);
   }, [item?.id]);
-
-  useEffect(() => {
-    return () => {
-      const copiedPassword = copiedPasswordRef.current;
-
-      clearClipboardTimer();
-      copiedPasswordRef.current = null;
-
-      if (copiedPassword) {
-        void clearClipboard();
-      }
-    };
-  }, []);
 
   useEffect(() => {
     if (!revealedPassword) {
@@ -116,28 +75,12 @@ export function ItemDetailPanel({ item }: ItemDetailPanelProps) {
     setIsCopyingPassword(true);
 
     try {
-      const result = await revealSecret({
+      await copySecret({
         id: itemId,
         secretType: 'password',
       });
 
-      await writeTextToClipboard(result.value);
-
-      clearClipboardTimer();
-      copiedPasswordRef.current = result.value;
       setCopyMessage('Copied. Clipboard will be cleared after 20 seconds.');
-
-      clipboardTimeoutRef.current = window.setTimeout(() => {
-        const copiedPassword = copiedPasswordRef.current;
-
-        copiedPasswordRef.current = null;
-        clipboardTimeoutRef.current = null;
-        setCopyMessage(null);
-
-        if (copiedPassword) {
-          void clearClipboard();
-        }
-      }, CLIPBOARD_TIMEOUT_MS);
     } catch {
       setCopyMessage(null);
       setRevealError('Could not copy password.');

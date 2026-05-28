@@ -1,14 +1,16 @@
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
+use std::time::Duration;
 use tauri::State;
 use uuid::Uuid;
 
+use crate::clipboard::{clear_secret_clipboard, copy_secret_text};
 use crate::crypto::item_payload::{build_item_aad, encrypt_item_payload};
 use crate::crypto::vault_key::VaultKey;
 use crate::items::model::{CreateLoginItemPayload, VaultItemDetail, VaultItemType};
 use crate::items::payloads::{decrypt_login_payload, LoginItemEncryptedPayload};
 use crate::state::AppState;
-use crate::vault::format::{VaultFile, VaultFileItem, VaultItemMetadata, VAULT_VERSION};
+use crate::vault::format::{VaultFileItem, VaultItemMetadata, VAULT_VERSION};
 use crate::vault::storage::{load_vault_file, save_vault_file};
 
 #[derive(Debug, Deserialize)]
@@ -21,6 +23,13 @@ pub struct CreateItemArgs {
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct RevealSecretArgs {
+    pub id: String,
+    pub secret_type: String,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CopySecretArgs {
     pub id: String,
     pub secret_type: String,
 }
@@ -113,6 +122,53 @@ pub async fn reveal_secret(
 
     Ok(RevealSecretResult {
         value: payload.password,
+    })
+}
+
+#[tauri::command]
+pub async fn copy_secret(
+    app: tauri::AppHandle,
+    state: State<'_, AppState>,
+    args: CopySecretArgs,
+) -> Result<RevealSecretResult, String> {
+    if args.id.trim().is_empty() {
+        return Err("Item id is required.".to_string());
+    }
+
+    if args.secret_type != "password" {
+        return Err("Unsupported secret type.".to_string());
+    }
+
+    let vault_key = {
+        let vault = state
+            .vault
+            .lock()
+            .map_err(|_| "Could not access vault state.".to_string())?;
+
+        *vault.require_unlocked()?
+    };
+
+    let vault_file = load_vault_file(&app)?;
+
+    let file_item = vault_file
+        .items
+        .iter()
+        .find(|item| item.id == args.id)
+        .ok_or_else(|| "Item not found.".to_string())?;
+
+    let payload = decrypt_login_payload(file_item, &vault_key)
+        .map_err(|_| "Could not copy secret.".to_string())?;
+
+    copy_secret_text(&payload.password)?;
+
+    std::thread::spawn(move || {
+        std::thread::sleep(Duration::from_secs(20));
+
+        let _ = clear_secret_clipboard(None);
+    });
+
+    Ok(RevealSecretResult {
+        value: "Copied.".to_string(),
     })
 }
 
