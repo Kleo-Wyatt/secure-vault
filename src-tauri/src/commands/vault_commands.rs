@@ -2,6 +2,7 @@ use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use tauri::State;
 
+use crate::clipboard::clear_secret_clipboard;
 use crate::crypto::kdf::{derive_key_encryption_key, generate_kdf_salt, KdfParams};
 use crate::crypto::vault_key::{decrypt_vault_key, encrypt_vault_key, generate_vault_key};
 use crate::items::payloads::decrypt_file_items;
@@ -118,6 +119,8 @@ pub async fn lock_vault(state: State<'_, AppState>) -> Result<VaultCommandResult
         .map_err(|_| "Could not access vault state.".to_string())?;
 
     vault.lock();
+
+    let _ = clear_secret_clipboard(None);
 
     Ok(VaultCommandResult {
         success: true,
