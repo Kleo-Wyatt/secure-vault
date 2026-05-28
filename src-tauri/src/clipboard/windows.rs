@@ -1,12 +1,9 @@
 use std::ptr::null_mut;
 
 use windows_sys::Win32::System::DataExchange::{
-    CloseClipboard, EmptyClipboard, GetClipboardSequenceNumber, OpenClipboard,
-    RegisterClipboardFormatW, SetClipboardData,
+    CloseClipboard, EmptyClipboard, OpenClipboard, RegisterClipboardFormatW, SetClipboardData,
 };
 use windows_sys::Win32::System::Memory::{GlobalAlloc, GlobalLock, GlobalUnlock, GMEM_MOVEABLE};
-
-use crate::clipboard::ClipboardWrite;
 
 const CF_UNICODETEXT: u32 = 13;
 const EXCLUDE_CLIPBOARD_HISTORY_FORMAT: &str = "ExcludeClipboardContentFromMonitorProcessing";
@@ -21,7 +18,7 @@ impl Drop for ClipboardGuard {
     }
 }
 
-pub fn copy_secret_text(value: &str) -> Result<ClipboardWrite, String> {
+pub fn copy_secret_text(value: &str) -> Result<(), String> {
     if value.is_empty() {
         return Err("Clipboard value is empty.".to_string());
     }
@@ -34,24 +31,12 @@ pub fn copy_secret_text(value: &str) -> Result<ClipboardWrite, String> {
         set_unicode_text(value)?;
         set_exclude_from_clipboard_history_marker()?;
 
-        let sequence_number = GetClipboardSequenceNumber();
-
-        Ok(ClipboardWrite {
-            sequence_number: Some(sequence_number),
-        })
+        Ok(())
     }
 }
 
-pub fn clear_secret_clipboard(sequence_number: Option<u32>) -> Result<(), String> {
+pub fn clear_secret_clipboard() -> Result<(), String> {
     unsafe {
-        if let Some(expected_sequence_number) = sequence_number {
-            let current_sequence_number = GetClipboardSequenceNumber();
-
-            if current_sequence_number != expected_sequence_number {
-                return Ok(());
-            }
-        }
-
         let _clipboard = open_clipboard()?;
 
         EmptyClipboard();

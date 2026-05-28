@@ -1,7 +1,7 @@
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
-use tauri::State;
+use tauri::{Emitter, State};
 use uuid::Uuid;
 
 use crate::clipboard::{clear_secret_clipboard, copy_secret_text};
@@ -44,6 +44,13 @@ pub struct DeleteItemArgs {
 #[serde(rename_all = "camelCase")]
 pub struct RevealSecretResult {
     pub value: String,
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ClipboardClearedEvent {
+    pub success: bool,
+    pub reason: String,
 }
 
 #[tauri::command]
@@ -167,10 +174,20 @@ pub async fn copy_secret(
 
     copy_secret_text(&payload.password)?;
 
+    let app_handle = app.clone();
+
     std::thread::spawn(move || {
         std::thread::sleep(Duration::from_secs(20));
 
-        let _ = clear_secret_clipboard(None);
+        let success = clear_secret_clipboard().is_ok();
+
+        let _ = app_handle.emit(
+            "clipboard-cleared",
+            ClipboardClearedEvent {
+                success,
+                reason: "timeout".to_string(),
+            },
+        );
     });
 
     Ok(RevealSecretResult {

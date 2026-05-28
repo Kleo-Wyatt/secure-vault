@@ -120,7 +120,7 @@ pub async fn lock_vault(state: State<'_, AppState>) -> Result<VaultCommandResult
 
     vault.lock();
 
-    let _ = clear_secret_clipboard(None);
+    let _ = clear_secret_clipboard();
 
     Ok(VaultCommandResult {
         success: true,

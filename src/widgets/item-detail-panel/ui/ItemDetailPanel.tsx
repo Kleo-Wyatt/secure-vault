@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { AlertTriangle, ShieldCheck } from 'lucide-react';
+import { listen } from '@tauri-apps/api/event';
 
 import type { VaultItemDetail } from '@/entities/item';
 import { revealSecret } from '@/features/reveal-secret';
@@ -9,6 +10,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 
 type ItemDetailPanelProps = {
   item?: VaultItemDetail;
+};
+
+type ClipboardClearedPayload = {
+  success: boolean;
+  reason: 'timeout';
 };
 
 const REVEAL_TIMEOUT_MS = 20_000;
@@ -41,6 +47,34 @@ export function ItemDetailPanel({ item }: ItemDetailPanelProps) {
       window.clearTimeout(timeoutId);
     };
   }, [revealedPassword]);
+
+  useEffect(() => {
+    let disposed = false;
+    let unlisten: (() => void) | undefined;
+
+    listen<ClipboardClearedPayload>('clipboard-cleared', (event) => {
+      if (event.payload.success) {
+        setCopyMessage(null);
+        return;
+      }
+
+      setCopyMessage(
+        'Could not clear clipboard automatically. Clear it manually.',
+      );
+    }).then((fn) => {
+      if (disposed) {
+        fn();
+        return;
+      }
+
+      unlisten = fn;
+    });
+
+    return () => {
+      disposed = true;
+      unlisten?.();
+    };
+  }, []);
 
   async function handleRevealPassword(itemId: string) {
     if (isRevealingPassword) {
