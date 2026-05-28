@@ -34,6 +34,12 @@ pub struct CopySecretArgs {
     pub secret_type: String,
 }
 
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DeleteItemArgs {
+    pub id: String,
+}
+
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct RevealSecretResult {
@@ -172,6 +178,39 @@ pub async fn copy_secret(
     })
 }
 
+#[tauri::command]
+pub async fn delete_item(
+    app: tauri::AppHandle,
+    state: State<'_, AppState>,
+    args: DeleteItemArgs,
+) -> Result<(), String> {
+    let item_id = args.id.trim().to_string();
+
+    if item_id.is_empty() {
+        return Err("Item id is required.".to_string());
+    }
+
+    {
+        let vault = state
+            .vault
+            .lock()
+            .map_err(|_| "Could not access vault state.".to_string())?;
+
+        vault.require_unlocked()?;
+    }
+
+    delete_file_item(&app, &item_id)?;
+
+    let mut vault = state
+        .vault
+        .lock()
+        .map_err(|_| "Could not access vault state.".to_string())?;
+
+    vault.items.retain(|item| item.id != item_id);
+
+    Ok(())
+}
+
 fn create_login_item(
     payload: Option<CreateLoginItemPayload>,
     vault_key: &VaultKey,
@@ -258,4 +297,23 @@ fn persist_file_item(app: tauri::AppHandle, file_item: VaultFileItem) -> Result<
     vault_file.items.insert(0, file_item);
 
     save_vault_file(&app, &vault_file)
+}
+
+fn delete_file_item(app: &tauri::AppHandle, item_id: &str) -> Result<(), String> {
+    let mut vault_file = load_vault_file(app)?;
+
+    let item_index = vault_file
+        .items
+        .iter()
+        .position(|item| item.id == item_id)
+        .ok_or_else(|| "Item not found.".to_string())?;
+
+    if vault_file.items[item_index].item_type != "login" {
+        return Err("Unsupported item type.".to_string());
+    }
+
+    vault_file.items.remove(item_index);
+    vault_file.updated_at = Utc::now().to_rfc3339();
+
+    save_vault_file(app, &vault_file)
 }
