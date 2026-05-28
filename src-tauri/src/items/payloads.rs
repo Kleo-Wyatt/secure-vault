@@ -25,6 +25,22 @@ pub fn decrypt_file_items(
         .collect()
 }
 
+pub fn decrypt_login_payload(
+    file_item: &VaultFileItem,
+    vault_key: &VaultKey,
+) -> Result<LoginItemEncryptedPayload, String> {
+    if file_item.item_type != "login" {
+        return Err("Unsupported item type.".to_string());
+    }
+
+    let aad = build_item_aad(&file_item.id, &file_item.item_type, VAULT_VERSION);
+
+    let plaintext = decrypt_item_payload(&file_item.encrypted_payload, vault_key, &aad)?;
+
+    serde_json::from_slice(&plaintext)
+        .map_err(|_| "Could not parse login item payload.".to_string())
+}
+
 fn decrypt_file_item(
     file_item: &VaultFileItem,
     vault_key: &VaultKey,
@@ -39,12 +55,7 @@ fn decrypt_login_item(
     file_item: &VaultFileItem,
     vault_key: &VaultKey,
 ) -> Result<VaultItemDetail, String> {
-    let aad = build_item_aad(&file_item.id, &file_item.item_type, VAULT_VERSION);
-
-    let plaintext = decrypt_item_payload(&file_item.encrypted_payload, vault_key, &aad)?;
-
-    let payload: LoginItemEncryptedPayload = serde_json::from_slice(&plaintext)
-        .map_err(|_| "Could not parse login item payload.".to_string())?;
+    let payload = decrypt_login_payload(file_item, vault_key)?;
 
     let description = payload
         .website

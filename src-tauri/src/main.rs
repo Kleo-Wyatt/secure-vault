@@ -4,7 +4,7 @@ mod items;
 mod state;
 mod vault;
 
-use commands::item_commands::{create_item, list_items};
+use commands::item_commands::{create_item, list_items, reveal_secret};
 use commands::vault_commands::{create_vault, lock_vault, unlock_vault};
 
 fn main() {
@@ -16,7 +16,8 @@ fn main() {
             unlock_vault,
             lock_vault,
             create_item,
-            list_items
+            list_items,
+            reveal_secret
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
