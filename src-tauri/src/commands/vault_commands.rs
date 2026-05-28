@@ -1,15 +1,13 @@
-use std::fs;
-
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
-use tauri::{Manager, State};
+use tauri::State;
 
 use crate::crypto::kdf::{derive_key_encryption_key, generate_kdf_salt, KdfParams};
 use crate::crypto::vault_key::{decrypt_vault_key, encrypt_vault_key, generate_vault_key};
 use crate::items::payloads::decrypt_file_items;
 use crate::state::AppState;
 use crate::vault::format::{VaultFile, VaultKdfConfig};
-use crate::vault::paths::default_vault_path;
+use crate::vault::storage::{load_vault_file, save_vault_file, vault_file_exists};
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -40,17 +38,7 @@ pub async fn create_vault(
         return Err("Master password is too short.".to_string());
     }
 
-    let app_data_dir = app
-        .path()
-        .app_data_dir()
-        .map_err(|_| "Could not resolve app data directory.".to_string())?;
-
-    fs::create_dir_all(&app_data_dir)
-        .map_err(|_| "Could not create app data directory.".to_string())?;
-
-    let vault_path = default_vault_path(app_data_dir);
-
-    if vault_path.exists() {
+    if vault_file_exists(&app)? {
         return Err("Vault file already exists.".to_string());
     }
 
@@ -69,10 +57,7 @@ pub async fn create_vault(
         encrypted_vault_key,
     );
 
-    let vault_json = serde_json::to_string_pretty(&vault_file)
-        .map_err(|_| "Could not serialize vault file.".to_string())?;
-
-    fs::write(&vault_path, vault_json).map_err(|_| "Could not write vault file.".to_string())?;
+    save_vault_file(&app, &vault_file)?;
 
     let mut vault = state
         .vault
@@ -97,20 +82,7 @@ pub async fn unlock_vault(
         return Err("Master password is required.".to_string());
     }
 
-    let app_data_dir = app
-        .path()
-        .app_data_dir()
-        .map_err(|_| "Could not resolve app data directory.".to_string())?;
-
-    let vault_path = default_vault_path(app_data_dir);
-
-    let vault_json =
-        fs::read_to_string(&vault_path).map_err(|_| "Could not read vault file.".to_string())?;
-
-    let vault_file: VaultFile =
-        serde_json::from_str(&vault_json).map_err(|_| "Could not parse vault file.".to_string())?;
-
-    vault_file.validate()?;
+    let vault_file = load_vault_file(&app)?;
 
     let salt = vault_file.kdf.decode_salt()?;
     let kdf_params = vault_file.kdf.to_params();

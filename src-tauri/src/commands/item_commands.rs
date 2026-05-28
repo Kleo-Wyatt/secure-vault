@@ -1,8 +1,6 @@
-use std::fs;
-
 use chrono::Utc;
 use serde::Deserialize;
-use tauri::{Manager, State};
+use tauri::State;
 use uuid::Uuid;
 
 use crate::crypto::item_payload::{build_item_aad, encrypt_item_payload};
@@ -11,7 +9,7 @@ use crate::items::model::{CreateLoginItemPayload, VaultItemDetail, VaultItemType
 use crate::items::payloads::LoginItemEncryptedPayload;
 use crate::state::AppState;
 use crate::vault::format::{VaultFile, VaultFileItem, VaultItemMetadata, VAULT_VERSION};
-use crate::vault::paths::default_vault_path;
+use crate::vault::storage::{load_vault_file, save_vault_file};
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -146,29 +144,10 @@ fn create_login_item(
 }
 
 fn persist_file_item(app: tauri::AppHandle, file_item: VaultFileItem) -> Result<(), String> {
-    let app_data_dir = app
-        .path()
-        .app_data_dir()
-        .map_err(|_| "Could not resolve app data directory.".to_string())?;
-
-    let vault_path = default_vault_path(app_data_dir);
-
-    let vault_json =
-        fs::read_to_string(&vault_path).map_err(|_| "Could not read vault file.".to_string())?;
-
-    let mut vault_file: VaultFile =
-        serde_json::from_str(&vault_json).map_err(|_| "Could not parse vault file.".to_string())?;
-
-    vault_file.validate()?;
+    let mut vault_file = load_vault_file(&app)?;
 
     vault_file.updated_at = Utc::now().to_rfc3339();
     vault_file.items.insert(0, file_item);
 
-    let next_vault_json = serde_json::to_string_pretty(&vault_file)
-        .map_err(|_| "Could not serialize vault file.".to_string())?;
-
-    fs::write(&vault_path, next_vault_json)
-        .map_err(|_| "Could not write vault file.".to_string())?;
-
-    Ok(())
+    save_vault_file(&app, &vault_file)
 }
