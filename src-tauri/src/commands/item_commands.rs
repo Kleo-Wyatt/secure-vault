@@ -1,13 +1,14 @@
 use std::fs;
 
 use chrono::Utc;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use tauri::{Manager, State};
 use uuid::Uuid;
 
 use crate::crypto::item_payload::{build_item_aad, encrypt_item_payload};
 use crate::crypto::vault_key::VaultKey;
 use crate::items::model::{CreateLoginItemPayload, VaultItemDetail, VaultItemType};
+use crate::items::payloads::LoginItemEncryptedPayload;
 use crate::state::AppState;
 use crate::vault::format::{VaultFile, VaultFileItem, VaultItemMetadata, VAULT_VERSION};
 use crate::vault::paths::default_vault_path;
@@ -17,16 +18,6 @@ use crate::vault::paths::default_vault_path;
 pub struct CreateItemArgs {
     pub item_type: String,
     pub login: Option<CreateLoginItemPayload>,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-struct LoginItemEncryptedPayload {
-    title: String,
-    username: Option<String>,
-    password: String,
-    website: Option<String>,
-    notes: Option<String>,
 }
 
 #[tauri::command]

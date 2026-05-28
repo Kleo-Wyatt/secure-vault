@@ -6,6 +6,7 @@ use tauri::{Manager, State};
 
 use crate::crypto::kdf::{derive_key_encryption_key, generate_kdf_salt, KdfParams};
 use crate::crypto::vault_key::{decrypt_vault_key, encrypt_vault_key, generate_vault_key};
+use crate::items::payloads::decrypt_file_items;
 use crate::state::AppState;
 use crate::vault::format::{VaultFile, VaultKdfConfig};
 use crate::vault::paths::default_vault_path;
@@ -120,12 +121,16 @@ pub async fn unlock_vault(
     let vault_key = decrypt_vault_key(&vault_file.encrypted_vault_key, &key_encryption_key)
         .map_err(|_| "Could not unlock vault.".to_string())?;
 
+    let items = decrypt_file_items(&vault_file.items, &vault_key)
+        .map_err(|_| "Could not unlock vault.".to_string())?;
+
     let mut vault = state
         .vault
         .lock()
         .map_err(|_| "Could not access vault state.".to_string())?;
 
     vault.unlock(vault_key);
+    vault.items = items;
 
     Ok(VaultCommandResult {
         success: true,
