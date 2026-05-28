@@ -104,7 +104,15 @@ export function VaultPage({ onLock }: VaultPageProps) {
             Loading vault items...
           </div>
         ) : (
-          <ItemDetailPanel item={selectedItem} />
+          <ItemDetailPanel
+            item={selectedItem}
+            onItemDeleted={(deletedItemId) => {
+              setSelectedItemId('');
+              setItems((currentItems) =>
+                currentItems.filter((item) => item.id !== deletedItemId),
+              );
+            }}
+          />
         )
       }
     />

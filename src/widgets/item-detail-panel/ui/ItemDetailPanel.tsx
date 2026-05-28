@@ -1,15 +1,17 @@
 import { useEffect, useState } from 'react';
-import { AlertTriangle, ShieldCheck } from 'lucide-react';
+import { AlertTriangle, ShieldCheck, Trash2 } from 'lucide-react';
 import { listen } from '@tauri-apps/api/event';
 
 import type { VaultItemDetail } from '@/entities/item';
 import { revealSecret } from '@/features/reveal-secret';
 import { copySecret } from '@/features/copy-secret';
+import { deleteItem } from '@/features/delete-item';
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 
 type ItemDetailPanelProps = {
   item?: VaultItemDetail;
+  onItemDeleted?: (id: string) => void | Promise<void>;
 };
 
 type ClipboardClearedPayload = {
@@ -19,12 +21,14 @@ type ClipboardClearedPayload = {
 
 const REVEAL_TIMEOUT_MS = 20_000;
 
-export function ItemDetailPanel({ item }: ItemDetailPanelProps) {
+export function ItemDetailPanel({ item, onItemDeleted }: ItemDetailPanelProps) {
   const [revealedPassword, setRevealedPassword] = useState<string | null>(null);
   const [isRevealingPassword, setIsRevealingPassword] = useState(false);
   const [revealError, setRevealError] = useState<string | null>(null);
   const [isCopyingPassword, setIsCopyingPassword] = useState(false);
   const [copyMessage, setCopyMessage] = useState<string | null>(null);
+  const [isDeletingItem, setIsDeletingItem] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   useEffect(() => {
     setRevealedPassword(null);
@@ -32,6 +36,7 @@ export function ItemDetailPanel({ item }: ItemDetailPanelProps) {
     setIsRevealingPassword(false);
     setIsCopyingPassword(false);
     setCopyMessage(null);
+    setDeleteError(null);
   }, [item?.id]);
 
   useEffect(() => {
@@ -120,6 +125,36 @@ export function ItemDetailPanel({ item }: ItemDetailPanelProps) {
       setRevealError('Could not copy password.');
     } finally {
       setIsCopyingPassword(false);
+    }
+  }
+
+  async function handleDeleteLoginItem(itemId: string, title: string) {
+    if (isDeletingItem) {
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Delete "${title}"?\n\nThis action cannot be undone.`,
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setRevealError(null);
+    setCopyMessage(null);
+    setDeleteError(null);
+    setIsDeletingItem(true);
+
+    try {
+      await deleteItem({ id: itemId });
+
+      setRevealedPassword(null);
+      await onItemDeleted?.(itemId);
+    } catch {
+      setDeleteError('Could not delete item.');
+    } finally {
+      setIsDeletingItem(false);
     }
   }
 
@@ -242,6 +277,31 @@ export function ItemDetailPanel({ item }: ItemDetailPanelProps) {
                 </p>
               </div>
             ) : null}
+
+            <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4">
+              <p className="text-sm font-medium text-destructive">
+                Danger zone
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Delete this login item from the encrypted vault. This action
+                cannot be undone.
+              </p>
+
+              <Button
+                className="mt-3"
+                variant="destructive"
+                size="sm"
+                onClick={() => handleDeleteLoginItem(item.id, item.title)}
+                disabled={isDeletingItem}
+              >
+                <Trash2 className="mr-2 size-4" />
+                {isDeletingItem ? 'Deleting...' : 'Delete login'}
+              </Button>
+
+              {deleteError ? (
+                <p className="mt-2 text-xs text-destructive">{deleteError}</p>
+              ) : null}
+            </div>
           </CardContent>
         </Card>
       </section>
