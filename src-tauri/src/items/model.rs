@@ -41,6 +41,7 @@ pub struct VaultItemDetail {
     pub description: String,
 
     pub username: Option<String>,
+    pub website: Option<String>,
     pub password_masked: Option<String>,
     pub notes: Option<String>,
 

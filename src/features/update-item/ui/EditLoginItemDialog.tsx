@@ -22,14 +22,6 @@ type EditLoginItemDialogProps = {
   onUpdated?: (item: VaultItemDetail) => void | Promise<void>;
 };
 
-function getInitialWebsite(item: LoginItem) {
-  if (!item.description || item.description === 'Login') {
-    return '';
-  }
-
-  return item.description;
-}
-
 export function EditLoginItemDialog({
   item,
   onUpdated,
@@ -38,7 +30,7 @@ export function EditLoginItemDialog({
   const [title, setTitle] = useState(item.title);
   const [username, setUsername] = useState(item.username ?? '');
   const [password, setPassword] = useState('');
-  const [website, setWebsite] = useState(getInitialWebsite(item));
+  const [website, setWebsite] = useState(item.website ?? '');
   const [notes, setNotes] = useState(item.notes ?? '');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -53,7 +45,7 @@ export function EditLoginItemDialog({
     setTitle(item.title);
     setUsername(item.username ?? '');
     setPassword('');
-    setWebsite(getInitialWebsite(item));
+    setWebsite(item.website ?? '');
     setNotes(item.notes ?? '');
     setErrorMessage(null);
     setIsSubmitting(false);

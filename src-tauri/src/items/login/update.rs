@@ -50,7 +50,7 @@ pub fn update_login_item(
         &title,
         username.clone(),
         password,
-        website,
+        website.clone(),
         notes.clone(),
         vault_key,
     )?;
@@ -74,6 +74,7 @@ pub fn update_login_item(
         title,
         description,
         username,
+        website,
         notes,
     ))
 }

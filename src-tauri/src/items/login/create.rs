@@ -38,7 +38,7 @@ pub fn create_login_item(
         &title,
         username.clone(),
         login.password,
-        website,
+        website.clone(),
         notes.clone(),
         vault_key,
     )?;
@@ -55,7 +55,7 @@ pub fn create_login_item(
         encrypted_payload,
     };
 
-    let item = login_detail(item_id, title, description, username, notes);
+    let item = login_detail(item_id, title, description, username, website, notes);
 
     Ok((item, file_item))
 }

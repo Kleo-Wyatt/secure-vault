@@ -40,6 +40,7 @@ pub fn login_detail(
     title: String,
     description: String,
     username: Option<String>,
+    website: Option<String>,
     notes: Option<String>,
 ) -> VaultItemDetail {
     VaultItemDetail {
@@ -48,6 +49,7 @@ pub fn login_detail(
         title,
         description,
         username,
+        website,
         password_masked: Some(MASKED_PASSWORD.to_string()),
         notes,
         is_high_security: None,
@@ -65,6 +67,7 @@ pub fn login_detail_from_payload(
         payload.title,
         description,
         payload.username,
+        payload.website,
         payload.notes,
     )
 }
