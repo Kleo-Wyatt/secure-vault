@@ -42,7 +42,10 @@ export function ItemDetailPanel({
         onHidePassword={loginItemDetail.hidePassword}
         onCopyPassword={loginItemDetail.handleCopyPassword}
         onDeleteLoginItem={loginItemDetail.handleDeleteLoginItem}
-        onItemUpdated={onItemUpdated}
+        onItemUpdated={async (updatedItem) => {
+          loginItemDetail.clearTransientState();
+          await onItemUpdated?.(updatedItem);
+        }}
       />
     );
   }

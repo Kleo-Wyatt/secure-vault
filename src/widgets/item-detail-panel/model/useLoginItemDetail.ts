@@ -29,6 +29,13 @@ export function useLoginItemDetail({
   const [isDeletingItem, setIsDeletingItem] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
+  function clearTransientState() {
+    setRevealedPassword(null);
+    setRevealError(null);
+    setCopyMessage(null);
+    setDeleteError(null);
+  }
+
   useEffect(() => {
     setRevealedPassword(null);
     setRevealError(null);
@@ -162,5 +169,6 @@ export function useLoginItemDetail({
     handleCopyPassword,
     handleDeleteLoginItem,
     hidePassword: () => setRevealedPassword(null),
+    clearTransientState,
   };
 }
