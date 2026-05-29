@@ -1,19 +1,20 @@
-use chrono::Utc;
-use serde::{Deserialize, Serialize};
+use serde::{ Deserialize, Serialize };
 use std::time::Duration;
-use tauri::{Emitter, State};
-use uuid::Uuid;
+use tauri::{ Emitter, State };
 
-use crate::clipboard::{clear_secret_clipboard, copy_secret_text};
-use crate::crypto::item_payload::{build_item_aad, encrypt_item_payload};
+use crate::clipboard::{ clear_secret_clipboard, copy_secret_text };
 use crate::crypto::vault_key::VaultKey;
-use crate::items::model::{
-    CreateLoginItemPayload, UpdateLoginItemPayload, VaultItemDetail, VaultItemType,
+use crate::items::login_items::{
+    create_login_item,
+    delete_login_file_item,
+    find_file_item,
+    persist_file_item,
+    update_login_item,
 };
-use crate::items::payloads::{decrypt_login_payload, LoginItemEncryptedPayload};
+use crate::items::model::{ CreateLoginItemPayload, UpdateLoginItemPayload, VaultItemDetail };
+use crate::items::payloads::decrypt_login_payload;
 use crate::state::AppState;
-use crate::vault::format::{VaultFileItem, VaultItemMetadata, VAULT_VERSION};
-use crate::vault::storage::{load_vault_file, save_vault_file};
+use crate::vault::storage::load_vault_file;
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -67,16 +68,9 @@ pub struct ClipboardClearedEvent {
 pub async fn create_item(
     app: tauri::AppHandle,
     state: State<'_, AppState>,
-    args: CreateItemArgs,
+    args: CreateItemArgs
 ) -> Result<VaultItemDetail, String> {
-    let vault_key = {
-        let vault = state
-            .vault
-            .lock()
-            .map_err(|_| "Could not access vault state.".to_string())?;
-
-        *vault.require_unlocked()?
-    };
+    let vault_key = require_unlocked_vault_key(&state)?;
 
     let (item, file_item) = match args.item_type.as_str() {
         "login" => create_login_item(args.login, &vault_key)?,
@@ -85,12 +79,9 @@ pub async fn create_item(
         }
     };
 
-    persist_file_item(app, file_item)?;
+    persist_file_item(&app, file_item)?;
 
-    let mut vault = state
-        .vault
-        .lock()
-        .map_err(|_| "Could not access vault state.".to_string())?;
+    let mut vault = state.vault.lock().map_err(|_| "Could not access vault state.".to_string())?;
 
     vault.items.insert(0, item.clone());
 
@@ -101,22 +92,11 @@ pub async fn create_item(
 pub async fn update_item(
     app: tauri::AppHandle,
     state: State<'_, AppState>,
-    args: UpdateItemArgs,
+    args: UpdateItemArgs
 ) -> Result<VaultItemDetail, String> {
-    let item_id = args.id.trim().to_string();
+    let item_id = normalize_required_item_id(&args.id)?;
 
-    if item_id.is_empty() {
-        return Err("Item id is required.".to_string());
-    }
-
-    let vault_key = {
-        let vault = state
-            .vault
-            .lock()
-            .map_err(|_| "Could not access vault state.".to_string())?;
-
-        *vault.require_unlocked()?
-    };
+    let vault_key = require_unlocked_vault_key(&state)?;
 
     let item = match args.item_type.as_str() {
         "login" => update_login_item(&app, &item_id, args.login, &vault_key)?,
@@ -125,10 +105,7 @@ pub async fn update_item(
         }
     };
 
-    let mut vault = state
-        .vault
-        .lock()
-        .map_err(|_| "Could not access vault state.".to_string())?;
+    let mut vault = state.vault.lock().map_err(|_| "Could not access vault state.".to_string())?;
 
     if let Some(existing_item) = vault.items.iter_mut().find(|item| item.id == item_id) {
         *existing_item = item.clone();
@@ -141,10 +118,7 @@ pub async fn update_item(
 
 #[tauri::command]
 pub async fn list_items(state: State<'_, AppState>) -> Result<Vec<VaultItemDetail>, String> {
-    let vault = state
-        .vault
-        .lock()
-        .map_err(|_| "Could not access vault state.".to_string())?;
+    let vault = state.vault.lock().map_err(|_| "Could not access vault state.".to_string())?;
 
     vault.require_unlocked()?;
 
@@ -155,35 +129,19 @@ pub async fn list_items(state: State<'_, AppState>) -> Result<Vec<VaultItemDetai
 pub async fn reveal_secret(
     app: tauri::AppHandle,
     state: State<'_, AppState>,
-    args: RevealSecretArgs,
+    args: RevealSecretArgs
 ) -> Result<RevealSecretResult, String> {
-    if args.id.trim().is_empty() {
-        return Err("Item id is required.".to_string());
-    }
+    let item_id = normalize_required_item_id(&args.id)?;
+    validate_password_secret_type(&args.secret_type)?;
 
-    if args.secret_type != "password" {
-        return Err("Unsupported secret type.".to_string());
-    }
-
-    let vault_key = {
-        let vault = state
-            .vault
-            .lock()
-            .map_err(|_| "Could not access vault state.".to_string())?;
-
-        *vault.require_unlocked()?
-    };
+    let vault_key = require_unlocked_vault_key(&state)?;
 
     let vault_file = load_vault_file(&app)?;
+    let file_item = find_file_item(&vault_file.items, &item_id)?;
 
-    let file_item = vault_file
-        .items
-        .iter()
-        .find(|item| item.id == args.id)
-        .ok_or_else(|| "Item not found.".to_string())?;
-
-    let payload = decrypt_login_payload(file_item, &vault_key)
-        .map_err(|_| "Could not reveal secret.".to_string())?;
+    let payload = decrypt_login_payload(file_item, &vault_key).map_err(|_|
+        "Could not reveal secret.".to_string()
+    )?;
 
     Ok(RevealSecretResult {
         value: payload.password,
@@ -194,35 +152,19 @@ pub async fn reveal_secret(
 pub async fn copy_secret(
     app: tauri::AppHandle,
     state: State<'_, AppState>,
-    args: CopySecretArgs,
+    args: CopySecretArgs
 ) -> Result<RevealSecretResult, String> {
-    if args.id.trim().is_empty() {
-        return Err("Item id is required.".to_string());
-    }
+    let item_id = normalize_required_item_id(&args.id)?;
+    validate_password_secret_type(&args.secret_type)?;
 
-    if args.secret_type != "password" {
-        return Err("Unsupported secret type.".to_string());
-    }
-
-    let vault_key = {
-        let vault = state
-            .vault
-            .lock()
-            .map_err(|_| "Could not access vault state.".to_string())?;
-
-        *vault.require_unlocked()?
-    };
+    let vault_key = require_unlocked_vault_key(&state)?;
 
     let vault_file = load_vault_file(&app)?;
+    let file_item = find_file_item(&vault_file.items, &item_id)?;
 
-    let file_item = vault_file
-        .items
-        .iter()
-        .find(|item| item.id == args.id)
-        .ok_or_else(|| "Item not found.".to_string())?;
-
-    let payload = decrypt_login_payload(file_item, &vault_key)
-        .map_err(|_| "Could not copy secret.".to_string())?;
+    let payload = decrypt_login_payload(file_item, &vault_key).map_err(|_|
+        "Could not copy secret.".to_string()
+    )?;
 
     copy_secret_text(&payload.password)?;
 
@@ -233,13 +175,10 @@ pub async fn copy_secret(
 
         let success = clear_secret_clipboard().is_ok();
 
-        let _ = app_handle.emit(
-            "clipboard-cleared",
-            ClipboardClearedEvent {
-                success,
-                reason: "timeout".to_string(),
-            },
-        );
+        let _ = app_handle.emit("clipboard-cleared", ClipboardClearedEvent {
+            success,
+            reason: "timeout".to_string(),
+        });
     });
 
     Ok(RevealSecretResult {
@@ -251,237 +190,41 @@ pub async fn copy_secret(
 pub async fn delete_item(
     app: tauri::AppHandle,
     state: State<'_, AppState>,
-    args: DeleteItemArgs,
+    args: DeleteItemArgs
 ) -> Result<(), String> {
-    let item_id = args.id.trim().to_string();
+    let item_id = normalize_required_item_id(&args.id)?;
 
-    if item_id.is_empty() {
-        return Err("Item id is required.".to_string());
-    }
+    require_unlocked_vault_key(&state)?;
 
-    {
-        let vault = state
-            .vault
-            .lock()
-            .map_err(|_| "Could not access vault state.".to_string())?;
+    delete_login_file_item(&app, &item_id)?;
 
-        vault.require_unlocked()?;
-    }
-
-    delete_file_item(&app, &item_id)?;
-
-    let mut vault = state
-        .vault
-        .lock()
-        .map_err(|_| "Could not access vault state.".to_string())?;
+    let mut vault = state.vault.lock().map_err(|_| "Could not access vault state.".to_string())?;
 
     vault.items.retain(|item| item.id != item_id);
 
     Ok(())
 }
 
-fn create_login_item(
-    payload: Option<CreateLoginItemPayload>,
-    vault_key: &VaultKey,
-) -> Result<(VaultItemDetail, VaultFileItem), String> {
-    let Some(login) = payload else {
-        return Err("Login payload is required.".to_string());
-    };
+fn require_unlocked_vault_key(state: &State<'_, AppState>) -> Result<VaultKey, String> {
+    let vault = state.vault.lock().map_err(|_| "Could not access vault state.".to_string())?;
 
-    let title = login.title.trim().to_string();
-
-    if title.is_empty() {
-        return Err("Title is required.".to_string());
-    }
-
-    if login.password.is_empty() {
-        return Err("Password is required.".to_string());
-    }
-
-    let item_id = Uuid::new_v4().to_string();
-    let item_type = "login".to_string();
-    let now = Utc::now().to_rfc3339();
-
-    let username = login
-        .username
-        .map(|value| value.trim().to_string())
-        .filter(|value| !value.is_empty());
-
-    let website = login
-        .website
-        .map(|value| value.trim().to_string())
-        .filter(|value| !value.is_empty());
-
-    let notes = login
-        .notes
-        .map(|value| value.trim().to_string())
-        .filter(|value| !value.is_empty());
-
-    let description = website.clone().unwrap_or_else(|| "Login".to_string());
-
-    let encrypted_payload_input = LoginItemEncryptedPayload {
-        title: title.clone(),
-        username: username.clone(),
-        password: login.password,
-        website,
-        notes: notes.clone(),
-    };
-
-    let plaintext = serde_json::to_vec(&encrypted_payload_input)
-        .map_err(|_| "Could not serialize item payload.".to_string())?;
-
-    let aad = build_item_aad(&item_id, &item_type, VAULT_VERSION);
-    let encrypted_payload = encrypt_item_payload(&plaintext, vault_key, &aad)?;
-
-    let file_item = VaultFileItem {
-        id: item_id.clone(),
-        item_type,
-        metadata: VaultItemMetadata {
-            title: title.clone(),
-            tags: Vec::new(),
-            created_at: now.clone(),
-            updated_at: now,
-        },
-        encrypted_payload,
-    };
-
-    let item = VaultItemDetail {
-        id: item_id,
-        item_type: VaultItemType::Login,
-        title,
-        description,
-        username,
-        password_masked: Some("••••••••••••••••".to_string()),
-        notes,
-        is_high_security: None,
-    };
-
-    Ok((item, file_item))
+    Ok(*vault.require_unlocked()?)
 }
 
-fn update_login_item(
-    app: &tauri::AppHandle,
-    item_id: &str,
-    payload: Option<UpdateLoginItemPayload>,
-    vault_key: &VaultKey,
-) -> Result<VaultItemDetail, String> {
-    let Some(login) = payload else {
-        return Err("Login payload is required.".to_string());
-    };
+fn normalize_required_item_id(item_id: &str) -> Result<String, String> {
+    let item_id = item_id.trim().to_string();
 
-    let title = login.title.trim().to_string();
-
-    if title.is_empty() {
-        return Err("Title is required.".to_string());
+    if item_id.is_empty() {
+        return Err("Item id is required.".to_string());
     }
 
-    let mut vault_file = load_vault_file(app)?;
-
-    let item_index = vault_file
-        .items
-        .iter()
-        .position(|item| item.id == item_id)
-        .ok_or_else(|| "Item not found.".to_string())?;
-
-    let existing_file_item = vault_file.items[item_index].clone();
-
-    if existing_file_item.item_type != "login" {
-        return Err("Unsupported item type.".to_string());
-    }
-
-    let existing_payload = decrypt_login_payload(&existing_file_item, vault_key)
-        .map_err(|_| "Could not update item.".to_string())?;
-
-    let username = login
-        .username
-        .map(|value| value.trim().to_string())
-        .filter(|value| !value.is_empty());
-
-    let website = login
-        .website
-        .map(|value| value.trim().to_string())
-        .filter(|value| !value.is_empty());
-
-    let notes = login
-        .notes
-        .map(|value| value.trim().to_string())
-        .filter(|value| !value.is_empty());
-
-    let password = login
-        .password
-        .filter(|value| !value.is_empty())
-        .unwrap_or(existing_payload.password);
-
-    let description = website.clone().unwrap_or_else(|| "Login".to_string());
-    let item_type = existing_file_item.item_type.clone();
-    let now = Utc::now().to_rfc3339();
-
-    let encrypted_payload_input = LoginItemEncryptedPayload {
-        title: title.clone(),
-        username: username.clone(),
-        password,
-        website,
-        notes: notes.clone(),
-    };
-
-    let plaintext = serde_json::to_vec(&encrypted_payload_input)
-        .map_err(|_| "Could not serialize item payload.".to_string())?;
-
-    let aad = build_item_aad(item_id, &item_type, VAULT_VERSION);
-    let encrypted_payload = encrypt_item_payload(&plaintext, vault_key, &aad)?;
-
-    vault_file.items[item_index] = VaultFileItem {
-        id: item_id.to_string(),
-        item_type,
-        metadata: VaultItemMetadata {
-            title: title.clone(),
-            tags: existing_file_item.metadata.tags,
-            created_at: existing_file_item.metadata.created_at,
-            updated_at: now.clone(),
-        },
-        encrypted_payload,
-    };
-
-    vault_file.updated_at = now;
-
-    save_vault_file(app, &vault_file)?;
-
-    Ok(VaultItemDetail {
-        id: item_id.to_string(),
-        item_type: VaultItemType::Login,
-        title,
-        description,
-        username,
-        password_masked: Some("••••••••••••••••".to_string()),
-        notes,
-        is_high_security: None,
-    })
+    Ok(item_id)
 }
 
-fn persist_file_item(app: tauri::AppHandle, file_item: VaultFileItem) -> Result<(), String> {
-    let mut vault_file = load_vault_file(&app)?;
-
-    vault_file.updated_at = Utc::now().to_rfc3339();
-    vault_file.items.insert(0, file_item);
-
-    save_vault_file(&app, &vault_file)
-}
-
-fn delete_file_item(app: &tauri::AppHandle, item_id: &str) -> Result<(), String> {
-    let mut vault_file = load_vault_file(app)?;
-
-    let item_index = vault_file
-        .items
-        .iter()
-        .position(|item| item.id == item_id)
-        .ok_or_else(|| "Item not found.".to_string())?;
-
-    if vault_file.items[item_index].item_type != "login" {
-        return Err("Unsupported item type.".to_string());
+fn validate_password_secret_type(secret_type: &str) -> Result<(), String> {
+    if secret_type != "password" {
+        return Err("Unsupported secret type.".to_string());
     }
 
-    vault_file.items.remove(item_index);
-    vault_file.updated_at = Utc::now().to_rfc3339();
-
-    save_vault_file(app, &vault_file)
+    Ok(())
 }
