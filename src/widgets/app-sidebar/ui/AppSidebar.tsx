@@ -3,12 +3,16 @@ import { ShieldCheck } from 'lucide-react';
 import type { VaultItemType } from '@/entities/item';
 import { LockVaultButton } from '@/features/lock-vault';
 import { cn } from '@/shared/lib/utils';
+import { Badge } from '@/shared/ui/badge';
 import { Button } from '@/shared/ui/button';
 
 export type SidebarItemTypeFilter = VaultItemType | 'all';
 
+export type SidebarItemTypeCounts = Record<SidebarItemTypeFilter, number>;
+
 type AppSidebarProps = {
   selectedItemType: SidebarItemTypeFilter;
+  itemTypeCounts: SidebarItemTypeCounts;
   onSelectItemType: (type: SidebarItemTypeFilter) => void;
   onLock: () => void;
 };
@@ -41,6 +45,7 @@ const itemTypeFilters: Array<{
 
 export function AppSidebar({
   selectedItemType,
+  itemTypeCounts,
   onSelectItemType,
   onLock,
 }: AppSidebarProps) {
@@ -60,16 +65,23 @@ export function AppSidebar({
       <nav className="flex flex-col gap-1">
         {itemTypeFilters.map((filter) => {
           const isSelected = filter.value === selectedItemType;
+          const count = itemTypeCounts[filter.value];
 
           return (
             <Button
               key={filter.value}
               type="button"
               variant={isSelected ? 'secondary' : 'ghost'}
-              className={cn('justify-start', isSelected && 'font-medium')}
+              className={cn(
+                'w-full justify-between',
+                isSelected && 'font-medium',
+              )}
               onClick={() => onSelectItemType(filter.value)}
             >
-              {filter.label}
+              <span>{filter.label}</span>
+              <Badge variant={isSelected ? 'default' : 'secondary'}>
+                {count}
+              </Badge>
             </Button>
           );
         })}

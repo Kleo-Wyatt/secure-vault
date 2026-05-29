@@ -12,6 +12,7 @@ type VaultPageProps = {
 export function VaultPage({ onLock }: VaultPageProps) {
   const {
     itemSummaries,
+    itemTypeCounts,
     selectedItem,
     selectedItemId,
     selectedItemType,
@@ -28,6 +29,7 @@ export function VaultPage({ onLock }: VaultPageProps) {
       sidebar={
         <AppSidebar
           selectedItemType={selectedItemType}
+          itemTypeCounts={itemTypeCounts}
           onSelectItemType={handleSelectItemType}
           onLock={onLock}
         />

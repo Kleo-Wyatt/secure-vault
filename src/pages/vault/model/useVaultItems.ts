@@ -11,6 +11,8 @@ import { listItems } from '@/features/list-items';
 
 export type VaultItemTypeFilter = VaultItemType | 'all';
 
+export type VaultItemTypeCounts = Record<VaultItemTypeFilter, number>;
+
 function toItemSummary(item: VaultItemDetail): VaultItemSummary {
   return {
     id: item.id,
@@ -30,6 +32,23 @@ function filterItemsByType(
   }
 
   return items.filter((item) => item.type === typeFilter);
+}
+
+function getItemTypeCounts(items: VaultItemDetail[]): VaultItemTypeCounts {
+  return items.reduce<VaultItemTypeCounts>(
+    (counts, item) => ({
+      ...counts,
+      all: counts.all + 1,
+      [item.type]: counts[item.type] + 1,
+    }),
+    {
+      all: 0,
+      login: 0,
+      totp: 0,
+      seed_phrase: 0,
+      secure_note: 0,
+    },
+  );
 }
 
 function getFirstItemId(items: VaultItemDetail[]) {
@@ -113,6 +132,8 @@ export function useVaultItems() {
     };
   }, []);
 
+  const itemTypeCounts = useMemo(() => getItemTypeCounts(items), [items]);
+
   const filteredItems = useMemo(
     () => filterItemsByType(items, selectedItemType),
     [items, selectedItemType],
@@ -177,6 +198,7 @@ export function useVaultItems() {
 
   return {
     itemSummaries,
+    itemTypeCounts,
     selectedItem,
     selectedItemId,
     selectedItemType,
