@@ -2,6 +2,17 @@ import { Trash2 } from 'lucide-react';
 
 import type { VaultItemDetail } from '@/entities/item';
 import { EditLoginItemDialog } from '@/features/update-item';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/shared/ui/alert-dialog';
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 
@@ -19,7 +30,7 @@ type LoginItemDetailProps = {
   onRevealPassword: (id: string) => void;
   onHidePassword: () => void;
   onCopyPassword: (id: string) => void;
-  onDeleteLoginItem: (id: string, title: string) => void;
+  onDeleteLoginItem: (id: string) => void;
   onItemUpdated?: (item: VaultItemDetail) => void | Promise<void>;
 };
 
@@ -49,8 +60,15 @@ export function LoginItemDetail({
         <CardContent className="space-y-6">
           <div>
             <p className="text-xs text-muted-foreground">Username</p>
-            <p className="text-sm">{item.username}</p>
+            <p className="text-sm">{item.username || 'Not set'}</p>
           </div>
+
+          {item.website ? (
+            <div>
+              <p className="text-xs text-muted-foreground">Website</p>
+              <p className="text-sm">{item.website}</p>
+            </div>
+          ) : null}
 
           <div>
             <p className="text-xs text-muted-foreground">Password</p>
@@ -122,14 +140,36 @@ export function LoginItemDetail({
           ) : null}
 
           <div className="border-t pt-4">
-            <Button
-              variant="destructive"
-              onClick={() => onDeleteLoginItem(item.id, item.title)}
-              disabled={isDeletingItem}
-            >
-              <Trash2 className="size-4" />
-              {isDeletingItem ? 'Deleting...' : 'Delete login'}
-            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive" disabled={isDeletingItem}>
+                  <Trash2 className="size-4" />
+                  {isDeletingItem ? 'Deleting...' : 'Delete login'}
+                </Button>
+              </AlertDialogTrigger>
+
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete login item?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Delete “{item.title}”? This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+
+                <AlertDialogFooter>
+                  <AlertDialogCancel disabled={isDeletingItem}>
+                    Cancel
+                  </AlertDialogCancel>
+                  <AlertDialogAction
+                    variant="destructive"
+                    disabled={isDeletingItem}
+                    onClick={() => onDeleteLoginItem(item.id)}
+                  >
+                    {isDeletingItem ? 'Deleting...' : 'Delete'}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
 
             {deleteError ? (
               <p className="mt-2 text-xs text-destructive">{deleteError}</p>

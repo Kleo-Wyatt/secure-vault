@@ -128,16 +128,8 @@ export function useLoginItemDetail({
     }
   }
 
-  async function handleDeleteLoginItem(targetItemId: string, title: string) {
+  async function handleDeleteLoginItem(targetItemId: string) {
     if (isDeletingItem) {
-      return;
-    }
-
-    const confirmed = window.confirm(
-      `Delete "${title}"?\n\nThis action cannot be undone.`,
-    );
-
-    if (!confirmed) {
       return;
     }
 
