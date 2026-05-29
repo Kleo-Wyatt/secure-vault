@@ -87,6 +87,22 @@ export function VaultPage({ onLock }: VaultPageProps) {
     setSelectedItemId(newItem.id);
   }
 
+  function handleItemUpdated(updatedItem: VaultItemDetail) {
+    setItems((currentItems) =>
+      currentItems.map((item) =>
+        item.id === updatedItem.id ? updatedItem : item,
+      ),
+    );
+    setSelectedItemId(updatedItem.id);
+  }
+
+  function handleItemDeleted(deletedItemId: string) {
+    setSelectedItemId('');
+    setItems((currentItems) =>
+      currentItems.filter((item) => item.id !== deletedItemId),
+    );
+  }
+
   return (
     <VaultLayout
       sidebar={<AppSidebar onLock={onLock} />}
@@ -106,12 +122,8 @@ export function VaultPage({ onLock }: VaultPageProps) {
         ) : (
           <ItemDetailPanel
             item={selectedItem}
-            onItemDeleted={(deletedItemId) => {
-              setSelectedItemId('');
-              setItems((currentItems) =>
-                currentItems.filter((item) => item.id !== deletedItemId),
-              );
-            }}
+            onItemDeleted={handleItemDeleted}
+            onItemUpdated={handleItemUpdated}
           />
         )
       }

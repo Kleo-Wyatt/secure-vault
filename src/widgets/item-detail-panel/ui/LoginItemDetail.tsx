@@ -1,6 +1,7 @@
 import { Trash2 } from 'lucide-react';
 
 import type { VaultItemDetail } from '@/entities/item';
+import { EditLoginItemDialog } from '@/features/update-item';
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 
@@ -19,6 +20,7 @@ type LoginItemDetailProps = {
   onHidePassword: () => void;
   onCopyPassword: (id: string) => void;
   onDeleteLoginItem: (id: string, title: string) => void;
+  onItemUpdated?: (item: VaultItemDetail) => void | Promise<void>;
 };
 
 export function LoginItemDetail({
@@ -34,12 +36,14 @@ export function LoginItemDetail({
   onHidePassword,
   onCopyPassword,
   onDeleteLoginItem,
+  onItemUpdated,
 }: LoginItemDetailProps) {
   return (
     <section className="p-6">
       <Card className="max-w-2xl">
-        <CardHeader>
+        <CardHeader className="flex flex-row items-start justify-between gap-4">
           <CardTitle>{item.title}</CardTitle>
+          <EditLoginItemDialog item={item} onUpdated={onItemUpdated} />
         </CardHeader>
 
         <CardContent className="space-y-6">
@@ -105,45 +109,25 @@ export function LoginItemDetail({
           </div>
 
           {copyMessage ? (
-            <p className="mt-2 text-xs text-muted-foreground">{copyMessage}</p>
-          ) : null}
-
-          {item.totpCode ? (
-            <div>
-              <p className="text-xs text-muted-foreground">TOTP</p>
-              <div className="mt-2 flex items-center gap-3">
-                <code className="text-2xl font-semibold tracking-widest">
-                  {item.totpCode}
-                </code>
-                <span className="text-xs text-muted-foreground">
-                  {item.totpExpiresIn}s left
-                </span>
-              </div>
-            </div>
+            <p className="rounded-lg border bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
+              {copyMessage}
+            </p>
           ) : null}
 
           {item.notes ? (
             <div>
               <p className="text-xs text-muted-foreground">Notes</p>
-              <p className="mt-1 text-sm text-muted-foreground">{item.notes}</p>
+              <p className="text-sm">{item.notes}</p>
             </div>
           ) : null}
 
-          <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4">
-            <p className="text-sm font-medium text-destructive">Danger zone</p>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Delete this login item from the encrypted vault. This action
-              cannot be undone.
-            </p>
-
+          <div className="border-t pt-4">
             <Button
-              className="mt-3"
               variant="destructive"
-              size="sm"
               onClick={() => onDeleteLoginItem(item.id, item.title)}
               disabled={isDeletingItem}
             >
-              <Trash2 className="mr-2 size-4" />
+              <Trash2 className="size-4" />
               {isDeletingItem ? 'Deleting...' : 'Delete login'}
             </Button>
 

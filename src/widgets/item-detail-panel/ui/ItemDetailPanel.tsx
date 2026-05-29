@@ -10,9 +10,14 @@ import { TotpItemDetail } from './TotpItemDetail';
 type ItemDetailPanelProps = {
   item?: VaultItemDetail;
   onItemDeleted?: (id: string) => void | Promise<void>;
+  onItemUpdated?: (item: VaultItemDetail) => void | Promise<void>;
 };
 
-export function ItemDetailPanel({ item, onItemDeleted }: ItemDetailPanelProps) {
+export function ItemDetailPanel({
+  item,
+  onItemDeleted,
+  onItemUpdated,
+}: ItemDetailPanelProps) {
   const loginItemDetail = useLoginItemDetail({
     itemId: item?.id,
     onItemDeleted,
@@ -37,6 +42,7 @@ export function ItemDetailPanel({ item, onItemDeleted }: ItemDetailPanelProps) {
         onHidePassword={loginItemDetail.hidePassword}
         onCopyPassword={loginItemDetail.handleCopyPassword}
         onDeleteLoginItem={loginItemDetail.handleDeleteLoginItem}
+        onItemUpdated={onItemUpdated}
       />
     );
   }
