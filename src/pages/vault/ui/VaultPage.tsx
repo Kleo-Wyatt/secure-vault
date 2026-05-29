@@ -23,6 +23,31 @@ function toItemSummary(item: VaultItemDetail): VaultItemSummary {
   };
 }
 
+function getNextSelectedItemId(
+  currentItems: VaultItemDetail[],
+  deletedItemId: string,
+) {
+  const deletedItemIndex = currentItems.findIndex(
+    (item) => item.id === deletedItemId,
+  );
+
+  const remainingItems = currentItems.filter(
+    (item) => item.id !== deletedItemId,
+  );
+
+  if (remainingItems.length === 0) {
+    return '';
+  }
+
+  if (deletedItemIndex === -1) {
+    return remainingItems[0]?.id ?? '';
+  }
+
+  const nextIndex = Math.min(deletedItemIndex, remainingItems.length - 1);
+
+  return remainingItems[nextIndex]?.id ?? '';
+}
+
 export function VaultPage({ onLock }: VaultPageProps) {
   const [items, setItems] = useState<VaultItemDetail[]>([]);
   const [selectedItemId, setSelectedItemId] = useState('');
@@ -97,10 +122,12 @@ export function VaultPage({ onLock }: VaultPageProps) {
   }
 
   function handleItemDeleted(deletedItemId: string) {
-    setSelectedItemId('');
+    const nextSelectedItemId = getNextSelectedItemId(items, deletedItemId);
+
     setItems((currentItems) =>
       currentItems.filter((item) => item.id !== deletedItemId),
     );
+    setSelectedItemId(nextSelectedItemId);
   }
 
   return (
