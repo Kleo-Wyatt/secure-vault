@@ -5,7 +5,9 @@ mod items;
 mod state;
 mod vault;
 
-use commands::item_commands::{copy_secret, create_item, delete_item, list_items, reveal_secret};
+use commands::item_commands::{
+    copy_secret, create_item, delete_item, list_items, reveal_secret, update_item,
+};
 use commands::vault_commands::{create_vault, lock_vault, unlock_vault};
 
 fn main() {
@@ -17,6 +19,7 @@ fn main() {
             unlock_vault,
             lock_vault,
             create_item,
+            update_item,
             list_items,
             reveal_secret,
             copy_secret,
