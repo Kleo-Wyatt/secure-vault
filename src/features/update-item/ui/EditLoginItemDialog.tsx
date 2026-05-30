@@ -62,6 +62,7 @@ export function EditLoginItemDialog({
         </DialogHeader>
 
         <LoginItemForm
+          idPrefix={`edit-login-${item.id}`}
           initialValues={{
             title: item.title,
             username: item.username,

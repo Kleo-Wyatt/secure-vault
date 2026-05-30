@@ -15,6 +15,7 @@ import {
 } from './LoginItemFormFields';
 
 type LoginItemFormProps = {
+  idPrefix?: string;
   initialValues?: Partial<LoginItemFormValues>;
   resetKey?: string;
   requirePassword?: boolean;
@@ -32,6 +33,7 @@ type LoginItemFormProps = {
 };
 
 export function LoginItemForm({
+  idPrefix = 'login',
   initialValues,
   resetKey,
   requirePassword = false,
@@ -131,7 +133,7 @@ export function LoginItemForm({
   return (
     <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
       <LoginItemTextField
-        id="login-title"
+        id={`${idPrefix}-title`}
         label="Title"
         value={title}
         onChange={setTitle}
@@ -140,7 +142,7 @@ export function LoginItemForm({
       />
 
       <LoginItemTextField
-        id="login-username"
+        id={`${idPrefix}-username`}
         label="Username or email"
         value={username}
         onChange={setUsername}
@@ -149,7 +151,7 @@ export function LoginItemForm({
       />
 
       <LoginItemPasswordField
-        id="login-password"
+        id={`${idPrefix}-password`}
         label={passwordLabel}
         value={password}
         onChange={setPassword}
@@ -160,7 +162,7 @@ export function LoginItemForm({
       />
 
       <LoginItemTextField
-        id="login-website"
+        id={`${idPrefix}-website`}
         label="Website"
         value={website}
         onChange={setWebsite}
@@ -169,7 +171,7 @@ export function LoginItemForm({
       />
 
       <LoginItemTextareaField
-        id="login-notes"
+        id={`${idPrefix}-notes`}
         label="Notes"
         value={notes}
         onChange={setNotes}

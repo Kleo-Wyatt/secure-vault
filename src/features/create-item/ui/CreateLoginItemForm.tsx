@@ -39,6 +39,7 @@ export function CreateLoginItemForm({
       </div>
 
       <LoginItemForm
+        idPrefix="create-login"
         resetKey="create-login"
         requirePassword
         submitLabel="Create login"
