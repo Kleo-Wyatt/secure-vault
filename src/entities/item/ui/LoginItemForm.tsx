@@ -1,17 +1,15 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 
+import {
+  areLoginItemFormValuesEqual,
+  getLoginItemFormState,
+  normalizeLoginItemFormValues,
+  type LoginItemFormValues,
+} from '@/entities/item/model/loginItemForm';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 import { Textarea } from '@/shared/ui/textarea';
-
-export type LoginItemFormValues = {
-  title: string;
-  username?: string;
-  password?: string;
-  website?: string;
-  notes?: string;
-};
 
 type LoginItemFormProps = {
   initialValues?: Partial<LoginItemFormValues>;
@@ -30,41 +28,6 @@ type LoginItemFormProps = {
   onSubmit: (values: LoginItemFormValues) => Promise<void> | void;
 };
 
-function normalizeInitialValue(value?: string) {
-  return value ?? '';
-}
-
-function normalizeOptionalText(value: string) {
-  const normalizedValue = value.trim();
-
-  return normalizedValue || undefined;
-}
-
-function normalizeFormValues(values: LoginItemFormValues): LoginItemFormValues {
-  return {
-    title: values.title.trim(),
-    username: values.username
-      ? normalizeOptionalText(values.username)
-      : undefined,
-    password: values.password || undefined,
-    website: values.website ? normalizeOptionalText(values.website) : undefined,
-    notes: values.notes ? normalizeOptionalText(values.notes) : undefined,
-  };
-}
-
-function areFormValuesEqual(
-  firstValues: LoginItemFormValues,
-  secondValues: LoginItemFormValues,
-) {
-  return (
-    firstValues.title === secondValues.title &&
-    firstValues.username === secondValues.username &&
-    firstValues.password === secondValues.password &&
-    firstValues.website === secondValues.website &&
-    firstValues.notes === secondValues.notes
-  );
-}
-
 export function LoginItemForm({
   initialValues,
   resetKey,
@@ -81,26 +44,18 @@ export function LoginItemForm({
   onCancel,
   onSubmit,
 }: LoginItemFormProps) {
-  const [title, setTitle] = useState(() =>
-    normalizeInitialValue(initialValues?.title),
-  );
-  const [username, setUsername] = useState(() =>
-    normalizeInitialValue(initialValues?.username),
-  );
-  const [password, setPassword] = useState(() =>
-    normalizeInitialValue(initialValues?.password),
-  );
-  const [website, setWebsite] = useState(() =>
-    normalizeInitialValue(initialValues?.website),
-  );
-  const [notes, setNotes] = useState(() =>
-    normalizeInitialValue(initialValues?.notes),
-  );
+  const initialFormState = getLoginItemFormState(initialValues);
+
+  const [title, setTitle] = useState(initialFormState.title);
+  const [username, setUsername] = useState(initialFormState.username);
+  const [password, setPassword] = useState(initialFormState.password);
+  const [website, setWebsite] = useState(initialFormState.website);
+  const [notes, setNotes] = useState(initialFormState.notes);
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const currentValues = normalizeFormValues({
+  const currentValues = normalizeLoginItemFormValues({
     title,
     username,
     password,
@@ -108,15 +63,13 @@ export function LoginItemForm({
     notes,
   });
 
-  const normalizedInitialValues = normalizeFormValues({
-    title: normalizeInitialValue(initialValues?.title),
-    username: normalizeInitialValue(initialValues?.username),
-    password: normalizeInitialValue(initialValues?.password),
-    website: normalizeInitialValue(initialValues?.website),
-    notes: normalizeInitialValue(initialValues?.notes),
-  });
+  const normalizedInitialValues =
+    normalizeLoginItemFormValues(initialFormState);
 
-  const isDirty = !areFormValuesEqual(currentValues, normalizedInitialValues);
+  const isDirty = !areLoginItemFormValuesEqual(
+    currentValues,
+    normalizedInitialValues,
+  );
 
   const canSubmit =
     currentValues.title.length > 0 &&
@@ -125,22 +78,26 @@ export function LoginItemForm({
     !isSubmitting;
 
   useEffect(() => {
-    setTitle(normalizeInitialValue(initialValues?.title));
-    setUsername(normalizeInitialValue(initialValues?.username));
-    setPassword(normalizeInitialValue(initialValues?.password));
-    setWebsite(normalizeInitialValue(initialValues?.website));
-    setNotes(normalizeInitialValue(initialValues?.notes));
+    const nextInitialFormState = getLoginItemFormState(initialValues);
+
+    setTitle(nextInitialFormState.title);
+    setUsername(nextInitialFormState.username);
+    setPassword(nextInitialFormState.password);
+    setWebsite(nextInitialFormState.website);
+    setNotes(nextInitialFormState.notes);
     setIsPasswordVisible(false);
     setErrorMessage(null);
     setIsSubmitting(false);
   }, [resetKey]);
 
   function resetForm() {
-    setTitle(normalizeInitialValue(initialValues?.title));
-    setUsername(normalizeInitialValue(initialValues?.username));
-    setPassword(normalizeInitialValue(initialValues?.password));
-    setWebsite(normalizeInitialValue(initialValues?.website));
-    setNotes(normalizeInitialValue(initialValues?.notes));
+    const nextInitialFormState = getLoginItemFormState(initialValues);
+
+    setTitle(nextInitialFormState.title);
+    setUsername(nextInitialFormState.username);
+    setPassword(nextInitialFormState.password);
+    setWebsite(nextInitialFormState.website);
+    setNotes(nextInitialFormState.notes);
     setIsPasswordVisible(false);
     setErrorMessage(null);
   }
