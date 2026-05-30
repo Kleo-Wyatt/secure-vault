@@ -1,21 +1,8 @@
-import { Trash2 } from 'lucide-react';
-
 import type { VaultItemDetail } from '@/entities/item';
 import { EditLoginItemDialog } from '@/features/update-item';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/shared/ui/alert-dialog';
-import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 
+import { LoginDeleteSection } from './LoginDeleteSection';
 import { LoginPasswordSection } from './LoginPasswordSection';
 
 type LoginItem = Extract<VaultItemDetail, { type: 'login' }>;
@@ -96,42 +83,12 @@ export function LoginItemDetail({
             </div>
           ) : null}
 
-          <div className="border-t pt-4">
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="destructive" disabled={isDeletingItem}>
-                  <Trash2 className="size-4" />
-                  {isDeletingItem ? 'Deleting...' : 'Delete login'}
-                </Button>
-              </AlertDialogTrigger>
-
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Delete login item?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Delete “{item.title}”? This action cannot be undone.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-
-                <AlertDialogFooter>
-                  <AlertDialogCancel disabled={isDeletingItem}>
-                    Cancel
-                  </AlertDialogCancel>
-                  <AlertDialogAction
-                    variant="destructive"
-                    disabled={isDeletingItem}
-                    onClick={() => onDeleteLoginItem(item.id)}
-                  >
-                    {isDeletingItem ? 'Deleting...' : 'Delete'}
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-
-            {deleteError ? (
-              <p className="mt-2 text-xs text-destructive">{deleteError}</p>
-            ) : null}
-          </div>
+          <LoginDeleteSection
+            title={item.title}
+            isDeletingItem={isDeletingItem}
+            deleteError={deleteError}
+            onDelete={() => onDeleteLoginItem(item.id)}
+          />
         </CardContent>
       </Card>
     </section>
