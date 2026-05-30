@@ -5,8 +5,10 @@ import {
   type VaultItemSummary,
   type VaultItemType,
 } from '@/entities/item';
-import type { CreateLoginItemInput } from '@/features/create-item';
-import { createLoginItem } from '@/features/create-item/api/createItem';
+import {
+  createLoginItem,
+  type CreateLoginItemInput,
+} from '@/features/create-item';
 import { listItems } from '@/features/list-items';
 
 export type VaultItemTypeFilter = VaultItemType | 'all';
