@@ -18,8 +18,10 @@ export function ItemDetailPanel({
   onItemDeleted,
   onItemUpdated,
 }: ItemDetailPanelProps) {
+  const loginItemId = item?.type === 'login' ? item.id : undefined;
+
   const loginItemDetail = useLoginItemDetail({
-    itemId: item?.id,
+    itemId: loginItemId,
     onItemDeleted,
   });
 
