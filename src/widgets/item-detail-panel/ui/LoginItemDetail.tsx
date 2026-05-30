@@ -16,6 +16,8 @@ import {
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 
+import { LoginPasswordSection } from './LoginPasswordSection';
+
 type LoginItem = Extract<VaultItemDetail, { type: 'login' }>;
 
 type LoginItemDetailProps = {
@@ -70,61 +72,16 @@ export function LoginItemDetail({
             </div>
           ) : null}
 
-          <div>
-            <p className="text-xs text-muted-foreground">Password</p>
-
-            {revealedPassword ? (
-              <input
-                className="mt-2 h-10 w-full rounded-lg border bg-muted/40 px-3 font-mono text-sm outline-none selection:bg-primary selection:text-primary-foreground"
-                value={revealedPassword}
-                spellCheck={false}
-                readOnly
-                aria-label="Revealed password"
-                onFocus={(event) => event.currentTarget.select()}
-              />
-            ) : (
-              <code className="mt-2 block rounded-lg border bg-muted/40 px-3 py-2 font-mono text-sm">
-                {item.passwordMasked}
-              </code>
-            )}
-
-            <div className="mt-2 flex flex-wrap gap-2">
-              {revealedPassword ? (
-                <Button variant="ghost" size="sm" onClick={onHidePassword}>
-                  Hide
-                </Button>
-              ) : (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => onRevealPassword(item.id)}
-                  disabled={isRevealingPassword}
-                >
-                  {isRevealingPassword ? 'Revealing...' : 'Reveal'}
-                </Button>
-              )}
-
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onCopyPassword(item.id)}
-                disabled={isCopyingPassword}
-              >
-                {isCopyingPassword ? 'Copying...' : 'Copy'}
-              </Button>
-            </div>
-
-            {revealedPassword ? (
-              <p className="mt-2 text-xs text-muted-foreground">
-                Password will be hidden automatically after 20 seconds. Focus
-                the field to select and copy the full value.
-              </p>
-            ) : null}
-
-            {revealError ? (
-              <p className="mt-2 text-xs text-destructive">{revealError}</p>
-            ) : null}
-          </div>
+          <LoginPasswordSection
+            passwordMasked={item.passwordMasked}
+            revealedPassword={revealedPassword}
+            isRevealingPassword={isRevealingPassword}
+            isCopyingPassword={isCopyingPassword}
+            revealError={revealError}
+            onRevealPassword={() => onRevealPassword(item.id)}
+            onHidePassword={onHidePassword}
+            onCopyPassword={() => onCopyPassword(item.id)}
+          />
 
           {copyMessage ? (
             <p className="rounded-lg border bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
