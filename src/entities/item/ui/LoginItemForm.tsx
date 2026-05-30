@@ -17,6 +17,7 @@ type LoginItemFormProps = {
   initialValues?: Partial<LoginItemFormValues>;
   resetKey?: string;
   requirePassword?: boolean;
+  requireDirty?: boolean;
   passwordLabel?: string;
   passwordPlaceholder?: string;
   passwordHelpText?: string;
@@ -33,10 +34,42 @@ function normalizeInitialValue(value?: string) {
   return value ?? '';
 }
 
+function normalizeOptionalText(value: string) {
+  const normalizedValue = value.trim();
+
+  return normalizedValue || undefined;
+}
+
+function normalizeFormValues(values: LoginItemFormValues): LoginItemFormValues {
+  return {
+    title: values.title.trim(),
+    username: values.username
+      ? normalizeOptionalText(values.username)
+      : undefined,
+    password: values.password || undefined,
+    website: values.website ? normalizeOptionalText(values.website) : undefined,
+    notes: values.notes ? normalizeOptionalText(values.notes) : undefined,
+  };
+}
+
+function areFormValuesEqual(
+  firstValues: LoginItemFormValues,
+  secondValues: LoginItemFormValues,
+) {
+  return (
+    firstValues.title === secondValues.title &&
+    firstValues.username === secondValues.username &&
+    firstValues.password === secondValues.password &&
+    firstValues.website === secondValues.website &&
+    firstValues.notes === secondValues.notes
+  );
+}
+
 export function LoginItemForm({
   initialValues,
   resetKey,
   requirePassword = false,
+  requireDirty = false,
   passwordLabel = 'Password',
   passwordPlaceholder = 'Enter password',
   passwordHelpText = 'Password will be encrypted before it is saved.',
@@ -67,9 +100,28 @@ export function LoginItemForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  const currentValues = normalizeFormValues({
+    title,
+    username,
+    password,
+    website,
+    notes,
+  });
+
+  const normalizedInitialValues = normalizeFormValues({
+    title: normalizeInitialValue(initialValues?.title),
+    username: normalizeInitialValue(initialValues?.username),
+    password: normalizeInitialValue(initialValues?.password),
+    website: normalizeInitialValue(initialValues?.website),
+    notes: normalizeInitialValue(initialValues?.notes),
+  });
+
+  const isDirty = !areFormValuesEqual(currentValues, normalizedInitialValues);
+
   const canSubmit =
-    title.trim().length > 0 &&
+    currentValues.title.length > 0 &&
     (!requirePassword || password.length > 0) &&
+    (!requireDirty || isDirty) &&
     !isSubmitting;
 
   useEffect(() => {
@@ -104,13 +156,7 @@ export function LoginItemForm({
     setIsSubmitting(true);
 
     try {
-      await onSubmit({
-        title: title.trim(),
-        username: username.trim() || undefined,
-        password: password || undefined,
-        website: website.trim() || undefined,
-        notes: notes.trim() || undefined,
-      });
+      await onSubmit(currentValues);
 
       if (resetAfterSubmit) {
         resetForm();

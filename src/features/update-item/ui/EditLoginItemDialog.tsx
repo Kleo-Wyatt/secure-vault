@@ -69,6 +69,7 @@ export function EditLoginItemDialog({
             notes: item.notes,
           }}
           resetKey={`${item.id}:${isOpen ? 'open' : 'closed'}`}
+          requireDirty
           passwordLabel="New password"
           passwordPlaceholder="Leave empty to keep current password"
           passwordHelpText="The existing password is not loaded into the form."
