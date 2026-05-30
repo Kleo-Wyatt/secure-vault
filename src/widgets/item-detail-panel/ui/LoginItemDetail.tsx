@@ -60,16 +60,11 @@ export function LoginItemDetail({
             isRevealingPassword={isRevealingPassword}
             isCopyingPassword={isCopyingPassword}
             revealError={revealError}
+            copyMessage={copyMessage}
             onRevealPassword={() => onRevealPassword(item.id)}
             onHidePassword={onHidePassword}
             onCopyPassword={() => onCopyPassword(item.id)}
           />
-
-          {copyMessage ? (
-            <p className="rounded-lg border bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
-              {copyMessage}
-            </p>
-          ) : null}
 
           <LoginDeleteSection
             title={item.title}

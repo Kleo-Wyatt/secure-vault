@@ -6,6 +6,7 @@ type LoginPasswordSectionProps = {
   isRevealingPassword: boolean;
   isCopyingPassword: boolean;
   revealError: string | null;
+  copyMessage: string | null;
   onRevealPassword: () => void;
   onHidePassword: () => void;
   onCopyPassword: () => void;
@@ -17,6 +18,7 @@ export function LoginPasswordSection({
   isRevealingPassword,
   isCopyingPassword,
   revealError,
+  copyMessage,
   onRevealPassword,
   onHidePassword,
   onCopyPassword,
@@ -70,6 +72,12 @@ export function LoginPasswordSection({
         <p className="mt-2 text-xs text-muted-foreground">
           Password will be hidden automatically after 20 seconds. Focus the
           field to select and copy the full value.
+        </p>
+      ) : null}
+
+      {copyMessage ? (
+        <p className="mt-2 rounded-lg border bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
+          {copyMessage}
         </p>
       ) : null}
 
