@@ -3,6 +3,7 @@ import { EditLoginItemDialog } from '@/features/update-item';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 
 import { LoginDeleteSection } from './LoginDeleteSection';
+import { LoginMetadataSection } from './LoginMetadataSection';
 import { LoginPasswordSection } from './LoginPasswordSection';
 
 type LoginItem = Extract<VaultItemDetail, { type: 'login' }>;
@@ -47,17 +48,11 @@ export function LoginItemDetail({
         </CardHeader>
 
         <CardContent className="space-y-6">
-          <div>
-            <p className="text-xs text-muted-foreground">Username</p>
-            <p className="text-sm">{item.username || 'Not set'}</p>
-          </div>
-
-          {item.website ? (
-            <div>
-              <p className="text-xs text-muted-foreground">Website</p>
-              <p className="text-sm">{item.website}</p>
-            </div>
-          ) : null}
+          <LoginMetadataSection
+            username={item.username}
+            website={item.website}
+            notes={item.notes}
+          />
 
           <LoginPasswordSection
             passwordMasked={item.passwordMasked}
@@ -74,13 +69,6 @@ export function LoginItemDetail({
             <p className="rounded-lg border bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
               {copyMessage}
             </p>
-          ) : null}
-
-          {item.notes ? (
-            <div>
-              <p className="text-xs text-muted-foreground">Notes</p>
-              <p className="text-sm">{item.notes}</p>
-            </div>
           ) : null}
 
           <LoginDeleteSection
