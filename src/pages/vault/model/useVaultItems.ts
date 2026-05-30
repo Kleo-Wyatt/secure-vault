@@ -82,6 +82,17 @@ function getNextSelectedItemId(
   return remainingItems[nextIndex]?.id ?? '';
 }
 
+function getTypeFilterForCreatedItem(
+  currentFilter: VaultItemTypeFilter,
+  createdItemType: VaultItemType,
+): VaultItemTypeFilter {
+  if (currentFilter === 'all' || currentFilter === createdItemType) {
+    return currentFilter;
+  }
+
+  return createdItemType;
+}
+
 export function useVaultItems() {
   const [items, setItems] = useState<VaultItemDetail[]>([]);
   const [selectedItemId, setSelectedItemId] = useState('');
@@ -172,7 +183,9 @@ export function useVaultItems() {
     const newItem = await createLoginItem(input);
 
     setItems((currentItems) => [newItem, ...currentItems]);
-    setSelectedItemType('all');
+    setSelectedItemType((currentFilter) =>
+      getTypeFilterForCreatedItem(currentFilter, newItem.type),
+    );
     setSelectedItemId(newItem.id);
   }
 
