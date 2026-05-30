@@ -11,6 +11,7 @@ type LoginItemTextFieldProps = {
   placeholder?: string;
   autoComplete?: string;
   autoFocus?: boolean;
+  errorMessage?: string | null;
   onChange: (value: string) => void;
 };
 
@@ -21,8 +22,11 @@ export function LoginItemTextField({
   placeholder,
   autoComplete,
   autoFocus,
+  errorMessage,
   onChange,
 }: LoginItemTextFieldProps) {
+  const errorId = `${id}-error`;
+
   return (
     <div className="flex flex-col gap-2">
       <label className="text-sm font-medium" htmlFor={id}>
@@ -35,7 +39,15 @@ export function LoginItemTextField({
         placeholder={placeholder}
         autoComplete={autoComplete}
         autoFocus={autoFocus}
+        aria-invalid={Boolean(errorMessage)}
+        aria-describedby={errorMessage ? errorId : undefined}
       />
+
+      {errorMessage ? (
+        <p id={errorId} className="text-xs text-destructive">
+          {errorMessage}
+        </p>
+      ) : null}
     </div>
   );
 }

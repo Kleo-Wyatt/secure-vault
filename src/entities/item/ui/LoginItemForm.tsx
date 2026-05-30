@@ -3,6 +3,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import {
   areLoginItemFormValuesEqual,
   getLoginItemFormState,
+  getLoginWebsiteValidationError,
   normalizeLoginItemFormValues,
   type LoginItemFormValues,
 } from '@/entities/item/model/loginItemForm';
@@ -60,6 +61,8 @@ export function LoginItemForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  const websiteError = getLoginWebsiteValidationError(website);
+
   const currentValues = normalizeLoginItemFormValues({
     title,
     username,
@@ -78,6 +81,7 @@ export function LoginItemForm({
 
   const canSubmit =
     currentValues.title.length > 0 &&
+    !websiteError &&
     (!requirePassword || password.length > 0) &&
     (!requireDirty || isDirty) &&
     !isSubmitting;
@@ -168,6 +172,7 @@ export function LoginItemForm({
         onChange={setWebsite}
         placeholder="https://example.com"
         autoComplete="url"
+        errorMessage={websiteError}
       />
 
       <LoginItemTextareaField
