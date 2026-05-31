@@ -5,7 +5,9 @@ use crate::crypto::vault_key::VaultKey;
 use crate::items::login::mapping::{
     encrypt_login_payload, login_description, login_detail, LOGIN_ITEM_TYPE,
 };
-use crate::items::login::normalize::{normalize_optional_text, normalize_required_title};
+use crate::items::login::normalize::{
+    normalize_optional_text, normalize_optional_website, normalize_required_title,
+};
 use crate::items::model::{CreateLoginItemPayload, VaultItemDetail};
 use crate::vault::format::{VaultFileItem, VaultItemMetadata};
 
@@ -28,7 +30,7 @@ pub fn create_login_item(
     let now = Utc::now().to_rfc3339();
 
     let username = normalize_optional_text(login.username);
-    let website = normalize_optional_text(login.website);
+    let website = normalize_optional_website(login.website)?;
     let notes = normalize_optional_text(login.notes);
     let description = login_description(&website);
 
