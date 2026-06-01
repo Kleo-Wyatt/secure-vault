@@ -1,6 +1,9 @@
 import type { VaultItemDetail } from '@/entities/item';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 
+import { useTotpItemDetail } from '../model/useTotpItemDetail';
+import { TotpCodeSection } from './TotpCodeSection';
+
 type TotpItem = Extract<VaultItemDetail, { type: 'totp' }>;
 
 type TotpItemDetailProps = {
@@ -8,6 +11,11 @@ type TotpItemDetailProps = {
 };
 
 export function TotpItemDetail({ item }: TotpItemDetailProps) {
+  const { code, expiresIn, isLoadingCode, codeError, refreshCode } =
+    useTotpItemDetail({
+      itemId: item.id,
+    });
+
   return (
     <section className="p-6">
       <Card className="max-w-2xl">
@@ -16,6 +24,14 @@ export function TotpItemDetail({ item }: TotpItemDetailProps) {
         </CardHeader>
 
         <CardContent className="space-y-6">
+          <TotpCodeSection
+            code={code}
+            expiresIn={expiresIn}
+            isLoadingCode={isLoadingCode}
+            codeError={codeError}
+            onRetryCode={refreshCode}
+          />
+
           {item.issuer ? (
             <div>
               <p className="text-xs text-muted-foreground">Issuer</p>
@@ -49,14 +65,6 @@ export function TotpItemDetail({ item }: TotpItemDetailProps) {
               <p className="text-sm whitespace-pre-wrap">{item.notes}</p>
             </div>
           ) : null}
-
-          <div className="rounded-lg border bg-muted/30 p-4">
-            <p className="text-sm font-medium">Code generation is next</p>
-            <p className="mt-1 text-sm text-muted-foreground">
-              The encrypted TOTP secret is saved. The next step will generate
-              one-time codes from it.
-            </p>
-          </div>
         </CardContent>
       </Card>
     </section>
