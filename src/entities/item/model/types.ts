@@ -13,17 +13,19 @@ export type LoginItemDetail = VaultItemSummary & {
   username?: string;
   website?: string;
   passwordMasked: string;
-  totpCode?: string;
-  totpExpiresIn?: number;
   notes?: string;
 };
 
 export type TotpItemDetail = VaultItemSummary & {
   type: 'totp';
-  issuer: string;
-  account: string;
-  code: string;
-  expiresIn: number;
+  issuer?: string;
+  account?: string;
+  algorithm?: string;
+  digits?: number;
+  period?: number;
+  code?: string;
+  expiresIn?: number;
+  notes?: string;
 };
 
 export type SeedPhraseItemDetail = VaultItemSummary & {
