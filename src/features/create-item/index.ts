@@ -1,3 +1,3 @@
-export { createLoginItem } from './api/createItem';
+export { createLoginItem, createTotpItem } from './api/createItem';
 export { CreateItemDialog } from './ui/CreateItemDialog';
-export type { CreateLoginItemInput } from './model/types';
+export type { CreateLoginItemInput, CreateTotpItemInput } from './model/types';

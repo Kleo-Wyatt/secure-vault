@@ -7,7 +7,9 @@ import {
 } from '@/entities/item';
 import {
   createLoginItem,
+  createTotpItem,
   type CreateLoginItemInput,
+  type CreateTotpItemInput,
 } from '@/features/create-item';
 import { listItems } from '@/features/list-items';
 
@@ -189,6 +191,16 @@ export function useVaultItems() {
     setSelectedItemId(newItem.id);
   }
 
+  async function handleCreateTotp(input: CreateTotpItemInput) {
+    const newItem = await createTotpItem(input);
+
+    setItems((currentItems) => [newItem, ...currentItems]);
+    setSelectedItemType((currentFilter) =>
+      getTypeFilterForCreatedItem(currentFilter, newItem.type),
+    );
+    setSelectedItemId(newItem.id);
+  }
+
   function handleItemUpdated(updatedItem: VaultItemDetail) {
     setItems((currentItems) =>
       currentItems.map((item) =>
@@ -221,6 +233,7 @@ export function useVaultItems() {
     handleSelectItem: setSelectedItemId,
     handleSelectItemType,
     handleCreateLogin,
+    handleCreateTotp,
     handleItemUpdated,
     handleItemDeleted,
   };

@@ -53,7 +53,7 @@ export function ItemDetailPanel({
   }
 
   if (item.type === 'totp') {
-    return <TotpItemDetail item={item} />;
+    return <TotpItemDetail item={item} onItemDeleted={onItemDeleted} />;
   }
 
   if (item.type === 'seed_phrase') {

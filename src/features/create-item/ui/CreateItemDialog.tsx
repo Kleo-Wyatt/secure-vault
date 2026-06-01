@@ -2,8 +2,12 @@ import { useState, type ComponentType } from 'react';
 import { KeyRound, LockKeyhole, NotebookText, ShieldCheck } from 'lucide-react';
 
 import type { VaultItemType } from '@/entities/item';
-import type { CreateLoginItemInput } from '@/features/create-item/model/types';
+import type {
+  CreateLoginItemInput,
+  CreateTotpItemInput,
+} from '@/features/create-item/model/types';
 import { CreateLoginItemForm } from '@/features/create-item/ui/CreateLoginItemForm';
+import { CreateTotpItemForm } from '@/features/create-item/ui/CreateTotpItemForm';
 import { Button } from '@/shared/ui/button';
 import {
   Dialog,
@@ -17,6 +21,7 @@ import {
 type CreateItemDialogProps = {
   onSelectType?: (type: VaultItemType) => void;
   onCreateLogin?: (input: CreateLoginItemInput) => Promise<void> | void;
+  onCreateTotp?: (input: CreateTotpItemInput) => Promise<void> | void;
 };
 
 const itemTypes: Array<{
@@ -51,9 +56,34 @@ const itemTypes: Array<{
   },
 ];
 
+function getDialogTitle(selectedType: VaultItemType | null) {
+  if (selectedType === 'login') {
+    return 'Create login';
+  }
+
+  if (selectedType === 'totp') {
+    return 'Create TOTP';
+  }
+
+  return 'Create new item';
+}
+
+function getDialogDescription(selectedType: VaultItemType | null) {
+  if (selectedType === 'login') {
+    return 'Add credentials for an account or exchange.';
+  }
+
+  if (selectedType === 'totp') {
+    return 'Add a two-factor authentication secret.';
+  }
+
+  return 'Choose what kind of encrypted item you want to store.';
+}
+
 export function CreateItemDialog({
   onSelectType,
   onCreateLogin,
+  onCreateTotp,
 }: CreateItemDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedType, setSelectedType] = useState<VaultItemType | null>(null);
@@ -75,6 +105,18 @@ export function CreateItemDialog({
           onBack={() => setSelectedType(null)}
           onCreate={async (input) => {
             await onCreateLogin?.(input);
+            handleClose();
+          }}
+        />
+      );
+    }
+
+    if (selectedType === 'totp') {
+      return (
+        <CreateTotpItemForm
+          onBack={() => setSelectedType(null)}
+          onCreate={async (input) => {
+            await onCreateTotp?.(input);
             handleClose();
           }}
         />
@@ -143,13 +185,9 @@ export function CreateItemDialog({
 
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>
-            {selectedType === 'login' ? 'Create login' : 'Create new item'}
-          </DialogTitle>
+          <DialogTitle>{getDialogTitle(selectedType)}</DialogTitle>
           <DialogDescription>
-            {selectedType === 'login'
-              ? 'Add credentials for an account or exchange.'
-              : 'Choose what kind of encrypted item you want to store.'}
+            {getDialogDescription(selectedType)}
           </DialogDescription>
         </DialogHeader>
 

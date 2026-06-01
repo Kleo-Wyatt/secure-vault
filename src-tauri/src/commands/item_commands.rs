@@ -3,8 +3,8 @@ use tauri::State;
 use crate::clipboard::copy_secret_text;
 use crate::commands::clipboard_timeout::schedule_clipboard_clear;
 use crate::commands::item_dto::{
-    CopySecretArgs, CreateItemArgs, DeleteItemArgs, RevealSecretArgs, RevealSecretResult,
-    UpdateItemArgs,
+    CopySecretArgs, CopyTotpCodeArgs, CreateItemArgs, DeleteItemArgs, GenerateTotpCodeArgs,
+    GenerateTotpCodeResult, RevealSecretArgs, RevealSecretResult, UpdateItemArgs,
 };
 use crate::commands::item_runtime::{
     insert_runtime_item, list_runtime_items, normalize_required_item_id, remove_runtime_item,
@@ -15,6 +15,9 @@ use crate::items::login::{
 };
 use crate::items::model::VaultItemDetail;
 use crate::items::repository::VaultItemRepository;
+use crate::items::totp::{
+    create_totp_item, delete_totp_file_item, generate_totp_code as generate_totp_code_from_item,
+};
 use crate::state::AppState;
 
 #[tauri::command]
@@ -28,6 +31,7 @@ pub async fn create_item(
 
     let (item, file_item) = match args.item_type.as_str() {
         "login" => create_login_item(args.login, &vault_key)?,
+        "totp" => create_totp_item(args.totp, &vault_key)?,
         _ => {
             return Err("Unsupported item type.".to_string());
         }
@@ -112,6 +116,44 @@ pub async fn copy_secret(
 }
 
 #[tauri::command]
+pub async fn generate_totp_code(
+    app: tauri::AppHandle,
+    state: State<'_, AppState>,
+    args: GenerateTotpCodeArgs,
+) -> Result<GenerateTotpCodeResult, String> {
+    let item_id = normalize_required_item_id(&args.id)?;
+    let vault_key = require_unlocked_vault_key(&state)?;
+    let repository = VaultItemRepository::new(&app);
+
+    let result = generate_totp_code_from_item(&repository, &item_id, &vault_key)?;
+
+    Ok(GenerateTotpCodeResult {
+        code: result.code,
+        expires_in: result.expires_in,
+    })
+}
+
+#[tauri::command]
+pub async fn copy_totp_code(
+    app: tauri::AppHandle,
+    state: State<'_, AppState>,
+    args: CopyTotpCodeArgs,
+) -> Result<RevealSecretResult, String> {
+    let item_id = normalize_required_item_id(&args.id)?;
+    let vault_key = require_unlocked_vault_key(&state)?;
+    let repository = VaultItemRepository::new(&app);
+
+    let result = generate_totp_code_from_item(&repository, &item_id, &vault_key)?;
+
+    copy_secret_text(&result.code)?;
+    schedule_clipboard_clear(app);
+
+    Ok(RevealSecretResult {
+        value: "Copied.".to_string(),
+    })
+}
+
+#[tauri::command]
 pub async fn delete_item(
     app: tauri::AppHandle,
     state: State<'_, AppState>,
@@ -122,8 +164,16 @@ pub async fn delete_item(
     require_unlocked_vault_key(&state)?;
 
     let repository = VaultItemRepository::new(&app);
+    let file_item = repository.find_file_item(&item_id)?;
 
-    delete_login_file_item(&repository, &item_id)?;
+    match file_item.item_type.as_str() {
+        "login" => delete_login_file_item(&repository, &item_id)?,
+        "totp" => delete_totp_file_item(&repository, &item_id)?,
+        _ => {
+            return Err("Unsupported item type.".to_string());
+        }
+    }
+
     remove_runtime_item(&state, &item_id)?;
 
     Ok(())

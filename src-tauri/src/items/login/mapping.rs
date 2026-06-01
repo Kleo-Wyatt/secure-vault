@@ -51,6 +51,13 @@ pub fn login_detail(
         username,
         website,
         password_masked: Some(MASKED_PASSWORD.to_string()),
+        issuer: None,
+        account: None,
+        algorithm: None,
+        digits: None,
+        period: None,
+        code: None,
+        expires_in: None,
         notes,
         is_high_security: None,
     }

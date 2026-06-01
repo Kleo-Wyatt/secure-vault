@@ -31,6 +31,19 @@ pub struct UpdateLoginItemPayload {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+pub struct CreateTotpItemPayload {
+    pub title: String,
+    pub issuer: Option<String>,
+    pub account: String,
+    pub secret: String,
+    pub algorithm: Option<String>,
+    pub digits: Option<u8>,
+    pub period: Option<u32>,
+    pub notes: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct VaultItemDetail {
     pub id: String,
 
@@ -43,6 +56,15 @@ pub struct VaultItemDetail {
     pub username: Option<String>,
     pub website: Option<String>,
     pub password_masked: Option<String>,
+
+    pub issuer: Option<String>,
+    pub account: Option<String>,
+    pub algorithm: Option<String>,
+    pub digits: Option<u8>,
+    pub period: Option<u32>,
+    pub code: Option<String>,
+    pub expires_in: Option<u32>,
+
     pub notes: Option<String>,
 
     pub is_high_security: Option<bool>,

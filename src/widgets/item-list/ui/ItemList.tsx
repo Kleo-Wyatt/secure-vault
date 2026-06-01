@@ -5,6 +5,7 @@ import type { VaultItemSummary } from '@/entities/item';
 import {
   CreateItemDialog,
   type CreateLoginItemInput,
+  type CreateTotpItemInput,
 } from '@/features/create-item';
 import { cn } from '@/shared/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
@@ -15,6 +16,7 @@ type ItemListProps = {
   selectedItemId?: string;
   onSelectItem: (itemId: string) => void;
   onCreateLogin: (input: CreateLoginItemInput) => void;
+  onCreateTotp: (input: CreateTotpItemInput) => void;
 };
 
 function getItemTypeLabel(type: VaultItemSummary['type']) {
@@ -53,6 +55,7 @@ export function ItemList({
   selectedItemId,
   onSelectItem,
   onCreateLogin,
+  onCreateTotp,
 }: ItemListProps) {
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -74,7 +77,10 @@ export function ItemList({
           />
         </div>
 
-        <CreateItemDialog onCreateLogin={onCreateLogin} />
+        <CreateItemDialog
+          onCreateLogin={onCreateLogin}
+          onCreateTotp={onCreateTotp}
+        />
       </div>
 
       {filteredItems.length === 0 ? (
