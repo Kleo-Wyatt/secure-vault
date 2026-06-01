@@ -15,7 +15,9 @@ use crate::items::login::{
 };
 use crate::items::model::VaultItemDetail;
 use crate::items::repository::VaultItemRepository;
-use crate::items::totp::{create_totp_item, generate_totp_code as generate_totp_code_from_item};
+use crate::items::totp::{
+    create_totp_item, delete_totp_file_item, generate_totp_code as generate_totp_code_from_item,
+};
 use crate::state::AppState;
 
 #[tauri::command]
@@ -162,8 +164,16 @@ pub async fn delete_item(
     require_unlocked_vault_key(&state)?;
 
     let repository = VaultItemRepository::new(&app);
+    let file_item = repository.find_file_item(&item_id)?;
 
-    delete_login_file_item(&repository, &item_id)?;
+    match file_item.item_type.as_str() {
+        "login" => delete_login_file_item(&repository, &item_id)?,
+        "totp" => delete_totp_file_item(&repository, &item_id)?,
+        _ => {
+            return Err("Unsupported item type.".to_string());
+        }
+    }
+
     remove_runtime_item(&state, &item_id)?;
 
     Ok(())
