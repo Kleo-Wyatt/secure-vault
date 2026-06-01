@@ -21,6 +21,16 @@ pub struct CreateLoginItemPayload {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+pub struct UpdateLoginItemPayload {
+    pub title: String,
+    pub username: Option<String>,
+    pub password: Option<String>,
+    pub website: Option<String>,
+    pub notes: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct VaultItemDetail {
     pub id: String,
 
@@ -31,6 +41,7 @@ pub struct VaultItemDetail {
     pub description: String,
 
     pub username: Option<String>,
+    pub website: Option<String>,
     pub password_masked: Option<String>,
     pub notes: Option<String>,
 

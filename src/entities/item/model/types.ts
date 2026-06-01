@@ -10,7 +10,8 @@ export type VaultItemSummary = {
 
 export type LoginItemDetail = VaultItemSummary & {
   type: 'login';
-  username: string;
+  username?: string;
+  website?: string;
   passwordMasked: string;
   totpCode?: string;
   totpExpiresIn?: number;
