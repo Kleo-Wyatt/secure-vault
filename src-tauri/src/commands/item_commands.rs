@@ -15,6 +15,7 @@ use crate::items::login::{
 };
 use crate::items::model::VaultItemDetail;
 use crate::items::repository::VaultItemRepository;
+use crate::items::totp::create_totp_item;
 use crate::state::AppState;
 
 #[tauri::command]
@@ -28,6 +29,7 @@ pub async fn create_item(
 
     let (item, file_item) = match args.item_type.as_str() {
         "login" => create_login_item(args.login, &vault_key)?,
+        "totp" => create_totp_item(args.totp, &vault_key)?,
         _ => {
             return Err("Unsupported item type.".to_string());
         }
