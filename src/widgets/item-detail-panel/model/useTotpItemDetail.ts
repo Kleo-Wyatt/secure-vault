@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { listen } from '@tauri-apps/api/event';
 
 import { copyTotpCode } from '@/features/copy-totp-code';
+import { deleteItem } from '@/features/delete-item';
 import { generateTotpCode } from '@/features/generate-totp-code';
 
 type ClipboardClearedPayload = {
@@ -11,15 +12,21 @@ type ClipboardClearedPayload = {
 
 type UseTotpItemDetailArgs = {
   itemId?: string;
+  onItemDeleted?: (id: string) => void | Promise<void>;
 };
 
-export function useTotpItemDetail({ itemId }: UseTotpItemDetailArgs) {
+export function useTotpItemDetail({
+  itemId,
+  onItemDeleted,
+}: UseTotpItemDetailArgs) {
   const [code, setCode] = useState<string | null>(null);
   const [expiresIn, setExpiresIn] = useState<number | null>(null);
   const [isLoadingCode, setIsLoadingCode] = useState(false);
   const [codeError, setCodeError] = useState<string | null>(null);
   const [isCopyingCode, setIsCopyingCode] = useState(false);
   const [copyMessage, setCopyMessage] = useState<string | null>(null);
+  const [isDeletingItem, setIsDeletingItem] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const isLoadingCodeRef = useRef(false);
   const requestIdRef = useRef(0);
@@ -70,6 +77,8 @@ export function useTotpItemDetail({ itemId }: UseTotpItemDetailArgs) {
     setIsLoadingCode(false);
     setIsCopyingCode(false);
     setCopyMessage(null);
+    setIsDeletingItem(false);
+    setDeleteError(null);
 
     void refreshCode();
   }, [itemId, refreshCode]);
@@ -135,6 +144,7 @@ export function useTotpItemDetail({ itemId }: UseTotpItemDetailArgs) {
 
     setCodeError(null);
     setCopyMessage(null);
+    setDeleteError(null);
     setIsCopyingCode(true);
 
     try {
@@ -149,14 +159,40 @@ export function useTotpItemDetail({ itemId }: UseTotpItemDetailArgs) {
     }
   }
 
+  async function handleDeleteTotpItem(targetItemId: string) {
+    if (isDeletingItem) {
+      return;
+    }
+
+    setCodeError(null);
+    setCopyMessage(null);
+    setDeleteError(null);
+    setIsDeletingItem(true);
+
+    try {
+      await deleteItem({ id: targetItemId });
+
+      setCode(null);
+      setExpiresIn(null);
+      await onItemDeleted?.(targetItemId);
+    } catch {
+      setDeleteError('Could not delete TOTP item.');
+    } finally {
+      setIsDeletingItem(false);
+    }
+  }
+
   return {
     code,
     expiresIn,
     isLoadingCode,
     isCopyingCode,
+    isDeletingItem,
     codeError,
     copyMessage,
+    deleteError,
     refreshCode,
     handleCopyCode,
+    handleDeleteTotpItem,
   };
 }
