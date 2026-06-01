@@ -38,10 +38,23 @@ pub struct DeleteItemArgs {
     pub id: String,
 }
 
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GenerateTotpCodeArgs {
+    pub id: String,
+}
+
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct RevealSecretResult {
     pub value: String,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GenerateTotpCodeResult {
+    pub code: String,
+    pub expires_in: u32,
 }
 
 #[derive(Debug, Clone, Serialize)]

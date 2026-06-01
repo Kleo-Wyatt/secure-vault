@@ -3,8 +3,8 @@ use tauri::State;
 use crate::clipboard::copy_secret_text;
 use crate::commands::clipboard_timeout::schedule_clipboard_clear;
 use crate::commands::item_dto::{
-    CopySecretArgs, CreateItemArgs, DeleteItemArgs, RevealSecretArgs, RevealSecretResult,
-    UpdateItemArgs,
+    CopySecretArgs, CreateItemArgs, DeleteItemArgs, GenerateTotpCodeArgs, GenerateTotpCodeResult,
+    RevealSecretArgs, RevealSecretResult, UpdateItemArgs,
 };
 use crate::commands::item_runtime::{
     insert_runtime_item, list_runtime_items, normalize_required_item_id, remove_runtime_item,
@@ -15,7 +15,7 @@ use crate::items::login::{
 };
 use crate::items::model::VaultItemDetail;
 use crate::items::repository::VaultItemRepository;
-use crate::items::totp::create_totp_item;
+use crate::items::totp::{create_totp_item, generate_totp_code as generate_totp_code_from_item};
 use crate::state::AppState;
 
 #[tauri::command]
@@ -110,6 +110,24 @@ pub async fn copy_secret(
 
     Ok(RevealSecretResult {
         value: "Copied.".to_string(),
+    })
+}
+
+#[tauri::command]
+pub async fn generate_totp_code(
+    app: tauri::AppHandle,
+    state: State<'_, AppState>,
+    args: GenerateTotpCodeArgs,
+) -> Result<GenerateTotpCodeResult, String> {
+    let item_id = normalize_required_item_id(&args.id)?;
+    let vault_key = require_unlocked_vault_key(&state)?;
+    let repository = VaultItemRepository::new(&app);
+
+    let result = generate_totp_code_from_item(&repository, &item_id, &vault_key)?;
+
+    Ok(GenerateTotpCodeResult {
+        code: result.code,
+        expires_in: result.expires_in,
     })
 }
 
