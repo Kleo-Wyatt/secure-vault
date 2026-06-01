@@ -74,21 +74,6 @@ export function TotpItemDetail({ item, onItemDeleted }: TotpItemDetailProps) {
             <p className="text-sm">{item.account || 'Not set'}</p>
           </div>
 
-          <div>
-            <p className="text-xs text-muted-foreground">Algorithm</p>
-            <p className="text-sm">{item.algorithm || 'SHA1'}</p>
-          </div>
-
-          <div>
-            <p className="text-xs text-muted-foreground">Digits</p>
-            <p className="text-sm">{item.digits ?? 6}</p>
-          </div>
-
-          <div>
-            <p className="text-xs text-muted-foreground">Period</p>
-            <p className="text-sm">{item.period ?? 30}s</p>
-          </div>
-
           {item.notes ? (
             <div>
               <p className="text-xs text-muted-foreground">Notes</p>
