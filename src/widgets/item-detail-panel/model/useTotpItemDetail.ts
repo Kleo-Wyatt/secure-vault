@@ -1,6 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { listen } from '@tauri-apps/api/event';
 
+import { copyTotpCode } from '@/features/copy-totp-code';
 import { generateTotpCode } from '@/features/generate-totp-code';
+
+type ClipboardClearedPayload = {
+  success: boolean;
+  reason: 'timeout';
+};
 
 type UseTotpItemDetailArgs = {
   itemId?: string;
@@ -11,6 +18,8 @@ export function useTotpItemDetail({ itemId }: UseTotpItemDetailArgs) {
   const [expiresIn, setExpiresIn] = useState<number | null>(null);
   const [isLoadingCode, setIsLoadingCode] = useState(false);
   const [codeError, setCodeError] = useState<string | null>(null);
+  const [isCopyingCode, setIsCopyingCode] = useState(false);
+  const [copyMessage, setCopyMessage] = useState<string | null>(null);
 
   const isLoadingCodeRef = useRef(false);
   const requestIdRef = useRef(0);
@@ -59,6 +68,8 @@ export function useTotpItemDetail({ itemId }: UseTotpItemDetailArgs) {
     setExpiresIn(null);
     setCodeError(null);
     setIsLoadingCode(false);
+    setIsCopyingCode(false);
+    setCopyMessage(null);
 
     void refreshCode();
   }, [itemId, refreshCode]);
@@ -89,11 +100,63 @@ export function useTotpItemDetail({ itemId }: UseTotpItemDetailArgs) {
     };
   }, [itemId, refreshCode]);
 
+  useEffect(() => {
+    let disposed = false;
+    let unlisten: (() => void) | undefined;
+
+    listen<ClipboardClearedPayload>('clipboard-cleared', (event) => {
+      if (event.payload.success) {
+        setCopyMessage(null);
+        return;
+      }
+
+      setCopyMessage(
+        'Could not clear clipboard automatically. Clear it manually.',
+      );
+    }).then((fn) => {
+      if (disposed) {
+        fn();
+        return;
+      }
+
+      unlisten = fn;
+    });
+
+    return () => {
+      disposed = true;
+      unlisten?.();
+    };
+  }, []);
+
+  async function handleCopyCode() {
+    if (!itemId || isCopyingCode) {
+      return;
+    }
+
+    setCodeError(null);
+    setCopyMessage(null);
+    setIsCopyingCode(true);
+
+    try {
+      await copyTotpCode({ id: itemId });
+
+      setCopyMessage('Copied. Clipboard will be cleared after 20 seconds.');
+    } catch {
+      setCopyMessage(null);
+      setCodeError('Could not copy TOTP code.');
+    } finally {
+      setIsCopyingCode(false);
+    }
+  }
+
   return {
     code,
     expiresIn,
     isLoadingCode,
+    isCopyingCode,
     codeError,
+    copyMessage,
     refreshCode,
+    handleCopyCode,
   };
 }

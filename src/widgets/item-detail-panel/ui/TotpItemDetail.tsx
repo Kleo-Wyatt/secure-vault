@@ -11,10 +11,18 @@ type TotpItemDetailProps = {
 };
 
 export function TotpItemDetail({ item }: TotpItemDetailProps) {
-  const { code, expiresIn, isLoadingCode, codeError, refreshCode } =
-    useTotpItemDetail({
-      itemId: item.id,
-    });
+  const {
+    code,
+    expiresIn,
+    isLoadingCode,
+    isCopyingCode,
+    codeError,
+    copyMessage,
+    refreshCode,
+    handleCopyCode,
+  } = useTotpItemDetail({
+    itemId: item.id,
+  });
 
   return (
     <section className="p-6">
@@ -28,8 +36,11 @@ export function TotpItemDetail({ item }: TotpItemDetailProps) {
             code={code}
             expiresIn={expiresIn}
             isLoadingCode={isLoadingCode}
+            isCopyingCode={isCopyingCode}
             codeError={codeError}
+            copyMessage={copyMessage}
             onRetryCode={refreshCode}
+            onCopyCode={handleCopyCode}
           />
 
           {item.issuer ? (

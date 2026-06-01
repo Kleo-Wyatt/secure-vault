@@ -1,4 +1,4 @@
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Copy } from 'lucide-react';
 
 import { Button } from '@/shared/ui/button';
 
@@ -6,8 +6,11 @@ type TotpCodeSectionProps = {
   code: string | null;
   expiresIn: number | null;
   isLoadingCode: boolean;
+  isCopyingCode: boolean;
   codeError: string | null;
+  copyMessage: string | null;
   onRetryCode: () => void;
+  onCopyCode: () => void;
 };
 
 function formatTotpCode(code: string) {
@@ -26,28 +29,52 @@ export function TotpCodeSection({
   code,
   expiresIn,
   isLoadingCode,
+  isCopyingCode,
   codeError,
+  copyMessage,
   onRetryCode,
+  onCopyCode,
 }: TotpCodeSectionProps) {
   return (
     <div className="rounded-xl border bg-muted/30 p-4">
-      <div>
-        <p className="text-xs text-muted-foreground">Current code</p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-xs text-muted-foreground">Current code</p>
+
+          {code ? (
+            <p className="mt-2 font-mono text-3xl font-semibold tracking-widest">
+              {formatTotpCode(code)}
+            </p>
+          ) : (
+            <p className="mt-2 text-sm text-muted-foreground">
+              {isLoadingCode ? 'Generating code...' : 'No code generated yet.'}
+            </p>
+          )}
+        </div>
 
         {code ? (
-          <p className="mt-2 font-mono text-3xl font-semibold tracking-widest">
-            {formatTotpCode(code)}
-          </p>
-        ) : (
-          <p className="mt-2 text-sm text-muted-foreground">
-            {isLoadingCode ? 'Generating code...' : 'No code generated yet.'}
-          </p>
-        )}
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={isCopyingCode}
+            onClick={onCopyCode}
+          >
+            <Copy className="size-4" />
+            {isCopyingCode ? 'Copying...' : 'Copy'}
+          </Button>
+        ) : null}
       </div>
 
       {expiresIn !== null ? (
         <p className="mt-3 text-xs text-muted-foreground">
           Refreshes automatically in {expiresIn}s.
+        </p>
+      ) : null}
+
+      {copyMessage ? (
+        <p className="mt-3 rounded-lg border bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
+          {copyMessage}
         </p>
       ) : null}
 
