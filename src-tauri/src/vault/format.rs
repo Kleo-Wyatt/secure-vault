@@ -17,6 +17,10 @@ pub struct VaultFile {
     pub updated_at: String,
     pub kdf: VaultKdfConfig,
     pub encrypted_vault_key: EncryptedVaultKey,
+
+    #[serde(default)]
+    pub lists: Vec<VaultFileList>,
+
     pub items: Vec<VaultFileItem>,
 }
 
@@ -31,6 +35,24 @@ pub struct VaultKdfConfig {
 
     pub iterations: u32,
     pub parallelism: u32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct VaultFileList {
+    pub id: String,
+    pub name: String,
+    pub template: VaultListTemplate,
+    pub created_at: String,
+    pub updated_at: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct VaultListTemplate {
+    pub login: bool,
+    pub totp: bool,
+    pub notes: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -138,6 +160,7 @@ impl VaultFile {
             updated_at: now,
             kdf,
             encrypted_vault_key,
+            lists: Vec::new(),
             items: Vec::new(),
         }
     }
@@ -154,8 +177,42 @@ impl VaultFile {
         self.kdf.validate()?;
         validate_encrypted_vault_key(&self.encrypted_vault_key)?;
 
+        for list in &self.lists {
+            list.validate()?;
+        }
+
         for item in &self.items {
             item.validate()?;
+        }
+
+        for item in &self.items {
+            item.validate()?;
+        }
+
+        Ok(())
+    }
+}
+
+impl VaultFileList {
+    pub fn validate(&self) -> Result<(), String> {
+        if self.id.trim().is_empty() {
+            return Err("Invalid list id.".to_string());
+        }
+
+        if self.name.trim().is_empty() {
+            return Err("Invalid list name.".to_string());
+        }
+
+        self.template.validate()?;
+
+        Ok(())
+    }
+}
+
+impl VaultListTemplate {
+    pub fn validate(&self) -> Result<(), String> {
+        if !self.login && !self.totp && !self.notes {
+            return Err("List template must include at least one field group.".to_string());
         }
 
         Ok(())
@@ -260,6 +317,7 @@ mod tests {
             updated_at: "2026-05-28T00:00:00Z".to_string(),
             kdf: kdf_config(),
             encrypted_vault_key: encrypted_vault_key(),
+            lists: Vec::new(),
             items: vec![VaultFileItem {
                 id: "item-1".to_string(),
                 item_type: "login".to_string(),
@@ -294,5 +352,57 @@ mod tests {
         };
 
         assert!(item.validate().is_err());
+    }
+
+    #[test]
+    fn validates_vault_file_with_lists() {
+        let vault_file = VaultFile {
+            format: VAULT_FORMAT.to_string(),
+            version: VAULT_VERSION,
+            created_at: "2026-05-28T00:00:00Z".to_string(),
+            updated_at: "2026-05-28T00:00:00Z".to_string(),
+            kdf: kdf_config(),
+            encrypted_vault_key: encrypted_vault_key(),
+            lists: vec![VaultFileList {
+                id: "list-1".to_string(),
+                name: "Crypto exchanges".to_string(),
+                template: VaultListTemplate {
+                    login: true,
+                    totp: true,
+                    notes: true,
+                },
+                created_at: "2026-05-28T00:00:00Z".to_string(),
+                updated_at: "2026-05-28T00:00:00Z".to_string(),
+            }],
+            items: Vec::new(),
+        };
+
+        assert!(vault_file.validate().is_ok());
+    }
+
+    #[test]
+    fn rejects_list_without_enabled_field_groups() {
+        let vault_file = VaultFile {
+            format: VAULT_FORMAT.to_string(),
+            version: VAULT_VERSION,
+            created_at: "2026-05-28T00:00:00Z".to_string(),
+            updated_at: "2026-05-28T00:00:00Z".to_string(),
+            kdf: kdf_config(),
+            encrypted_vault_key: encrypted_vault_key(),
+            lists: vec![VaultFileList {
+                id: "list-1".to_string(),
+                name: "Empty template".to_string(),
+                template: VaultListTemplate {
+                    login: false,
+                    totp: false,
+                    notes: false,
+                },
+                created_at: "2026-05-28T00:00:00Z".to_string(),
+                updated_at: "2026-05-28T00:00:00Z".to_string(),
+            }],
+            items: Vec::new(),
+        };
+
+        assert!(vault_file.validate().is_err());
     }
 }
