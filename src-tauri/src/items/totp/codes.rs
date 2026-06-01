@@ -125,3 +125,112 @@ fn dynamic_truncate(hmac_result: &[u8]) -> Result<u32, String> {
 
     Ok(value)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::generate_code;
+
+    const RFC_SECRET_SHA1: &[u8] = b"12345678901234567890";
+    const RFC_SECRET_SHA256: &[u8] = b"12345678901234567890123456789012";
+    const RFC_SECRET_SHA512: &[u8] =
+        b"1234567890123456789012345678901234567890123456789012345678901234";
+
+    #[test]
+    fn generates_sha1_totp_codes_from_rfc_vectors() {
+        assert_eq!(
+            generate_code(RFC_SECRET_SHA1, 59 / 30, "SHA1", 8).unwrap(),
+            "94287082",
+        );
+        assert_eq!(
+            generate_code(RFC_SECRET_SHA1, 1_111_111_109 / 30, "SHA1", 8).unwrap(),
+            "07081804",
+        );
+        assert_eq!(
+            generate_code(RFC_SECRET_SHA1, 1_111_111_111 / 30, "SHA1", 8).unwrap(),
+            "14050471",
+        );
+        assert_eq!(
+            generate_code(RFC_SECRET_SHA1, 1_234_567_890 / 30, "SHA1", 8).unwrap(),
+            "89005924",
+        );
+        assert_eq!(
+            generate_code(RFC_SECRET_SHA1, 2_000_000_000 / 30, "SHA1", 8).unwrap(),
+            "69279037",
+        );
+        assert_eq!(
+            generate_code(RFC_SECRET_SHA1, 20_000_000_000 / 30, "SHA1", 8).unwrap(),
+            "65353130",
+        );
+    }
+
+    #[test]
+    fn generates_sha256_totp_codes_from_rfc_vectors() {
+        assert_eq!(
+            generate_code(RFC_SECRET_SHA256, 59 / 30, "SHA256", 8).unwrap(),
+            "46119246",
+        );
+        assert_eq!(
+            generate_code(RFC_SECRET_SHA256, 1_111_111_109 / 30, "SHA256", 8).unwrap(),
+            "68084774",
+        );
+        assert_eq!(
+            generate_code(RFC_SECRET_SHA256, 1_111_111_111 / 30, "SHA256", 8).unwrap(),
+            "67062674",
+        );
+        assert_eq!(
+            generate_code(RFC_SECRET_SHA256, 1_234_567_890 / 30, "SHA256", 8).unwrap(),
+            "91819424",
+        );
+        assert_eq!(
+            generate_code(RFC_SECRET_SHA256, 2_000_000_000 / 30, "SHA256", 8).unwrap(),
+            "90698825",
+        );
+        assert_eq!(
+            generate_code(RFC_SECRET_SHA256, 20_000_000_000 / 30, "SHA256", 8).unwrap(),
+            "77737706",
+        );
+    }
+
+    #[test]
+    fn generates_sha512_totp_codes_from_rfc_vectors() {
+        assert_eq!(
+            generate_code(RFC_SECRET_SHA512, 59 / 30, "SHA512", 8).unwrap(),
+            "90693936",
+        );
+        assert_eq!(
+            generate_code(RFC_SECRET_SHA512, 1_111_111_109 / 30, "SHA512", 8).unwrap(),
+            "25091201",
+        );
+        assert_eq!(
+            generate_code(RFC_SECRET_SHA512, 1_111_111_111 / 30, "SHA512", 8).unwrap(),
+            "99943326",
+        );
+        assert_eq!(
+            generate_code(RFC_SECRET_SHA512, 1_234_567_890 / 30, "SHA512", 8).unwrap(),
+            "93441116",
+        );
+        assert_eq!(
+            generate_code(RFC_SECRET_SHA512, 2_000_000_000 / 30, "SHA512", 8).unwrap(),
+            "38618901",
+        );
+        assert_eq!(
+            generate_code(RFC_SECRET_SHA512, 20_000_000_000 / 30, "SHA512", 8).unwrap(),
+            "47863826",
+        );
+    }
+
+    #[test]
+    fn formats_six_digit_codes_with_leading_zeroes() {
+        let code = generate_code(RFC_SECRET_SHA1, 1_111_111_109 / 30, "SHA1", 6).unwrap();
+
+        assert_eq!(code.len(), 6);
+        assert!(code.chars().all(|character| character.is_ascii_digit()));
+    }
+
+    #[test]
+    fn rejects_unsupported_algorithm() {
+        let result = generate_code(RFC_SECRET_SHA1, 59 / 30, "MD5", 6);
+
+        assert_eq!(result.unwrap_err(), "Unsupported TOTP algorithm.");
+    }
+}
