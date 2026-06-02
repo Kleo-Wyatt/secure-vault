@@ -14,6 +14,7 @@ export type LoginItemDetail = VaultItemSummary & {
   username?: string;
   website?: string;
   passwordMasked: string;
+  hasTotp?: boolean;
   notes?: string;
 };
 

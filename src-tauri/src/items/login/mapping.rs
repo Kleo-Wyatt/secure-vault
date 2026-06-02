@@ -1,7 +1,7 @@
 use crate::crypto::item_payload::{build_item_aad, encrypt_item_payload, EncryptedPayload};
 use crate::crypto::vault_key::VaultKey;
 use crate::items::model::{VaultItemDetail, VaultItemType};
-use crate::items::payloads::LoginItemEncryptedPayload;
+use crate::items::payloads::{LoginItemEncryptedPayload, LoginItemTotpEncryptedPayload};
 use crate::vault::format::VAULT_VERSION;
 
 pub const LOGIN_ITEM_TYPE: &str = "login";
@@ -16,6 +16,7 @@ pub fn encrypt_login_payload(
     username: Option<String>,
     password: String,
     website: Option<String>,
+    totp: Option<LoginItemTotpEncryptedPayload>,
     notes: Option<String>,
     vault_key: &VaultKey,
 ) -> Result<EncryptedPayload, String> {
@@ -24,6 +25,7 @@ pub fn encrypt_login_payload(
         username,
         password,
         website,
+        totp,
         notes,
     };
 
@@ -42,6 +44,7 @@ pub fn login_detail(
     description: String,
     username: Option<String>,
     website: Option<String>,
+    has_totp: bool,
     notes: Option<String>,
 ) -> VaultItemDetail {
     VaultItemDetail {
@@ -60,6 +63,7 @@ pub fn login_detail(
         period: None,
         code: None,
         expires_in: None,
+        has_totp: Some(has_totp),
         notes,
         is_high_security: None,
     }
@@ -71,6 +75,7 @@ pub fn login_detail_from_payload(
     payload: LoginItemEncryptedPayload,
 ) -> VaultItemDetail {
     let description = login_description(&payload.website);
+    let has_totp = payload.totp.is_some();
 
     login_detail(
         id,
@@ -79,6 +84,7 @@ pub fn login_detail_from_payload(
         description,
         payload.username,
         payload.website,
+        has_totp,
         payload.notes,
     )
 }

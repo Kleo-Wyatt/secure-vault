@@ -14,7 +14,22 @@ pub struct LoginItemEncryptedPayload {
     pub username: Option<String>,
     pub password: String,
     pub website: Option<String>,
+
+    #[serde(default)]
+    pub totp: Option<LoginItemTotpEncryptedPayload>,
+
     pub notes: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct LoginItemTotpEncryptedPayload {
+    pub issuer: Option<String>,
+    pub account: Option<String>,
+    pub secret: String,
+    pub algorithm: String,
+    pub digits: u8,
+    pub period: u32,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

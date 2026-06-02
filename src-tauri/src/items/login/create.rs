@@ -6,7 +6,8 @@ use crate::items::login::mapping::{
     encrypt_login_payload, login_description, login_detail, LOGIN_ITEM_TYPE,
 };
 use crate::items::login::normalize::{
-    normalize_optional_text, normalize_optional_website, normalize_required_title,
+    normalize_optional_login_totp, normalize_optional_text, normalize_optional_website,
+    normalize_required_title,
 };
 use crate::items::model::{CreateLoginItemPayload, VaultItemDetail};
 use crate::vault::format::{VaultFileItem, VaultItemMetadata};
@@ -20,8 +21,6 @@ pub fn create_login_item(
         return Err("Login payload is required.".to_string());
     };
 
-    let title = normalize_required_title(&login.title)?;
-
     if login.password.is_empty() {
         return Err("Password is required.".to_string());
     }
@@ -30,10 +29,13 @@ pub fn create_login_item(
     let item_type = LOGIN_ITEM_TYPE.to_string();
     let now = Utc::now().to_rfc3339();
 
+    let title = normalize_required_title(&login.title)?;
     let username = normalize_optional_text(login.username);
     let website = normalize_optional_website(login.website)?;
+    let totp = normalize_optional_login_totp(login.totp)?;
     let notes = normalize_optional_text(login.notes);
     let description = login_description(&website);
+    let has_totp = totp.is_some();
 
     let encrypted_payload = encrypt_login_payload(
         &item_id,
@@ -42,6 +44,7 @@ pub fn create_login_item(
         username.clone(),
         login.password,
         website.clone(),
+        totp.clone(),
         notes.clone(),
         vault_key,
     )?;
@@ -66,6 +69,7 @@ pub fn create_login_item(
         description,
         username,
         website,
+        has_totp,
         notes,
     );
 

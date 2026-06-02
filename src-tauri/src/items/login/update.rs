@@ -37,6 +37,8 @@ pub fn update_login_item(
     let website = normalize_optional_website(login.website)?;
     let notes = normalize_optional_text(login.notes);
     let description = login_description(&website);
+    let totp = existing_payload.totp;
+    let has_totp = totp.is_some();
 
     let password = login
         .password
@@ -53,6 +55,7 @@ pub fn update_login_item(
         username.clone(),
         password,
         website.clone(),
+        totp,
         notes.clone(),
         vault_key,
     )?;
@@ -79,6 +82,7 @@ pub fn update_login_item(
         description,
         username,
         website,
+        has_totp,
         notes,
     ))
 }

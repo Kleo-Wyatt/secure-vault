@@ -69,6 +69,7 @@ pub fn totp_detail(
         period: Some(period),
         code: None,
         expires_in: None,
+        has_totp: None,
         notes,
         is_high_security: None,
     }
