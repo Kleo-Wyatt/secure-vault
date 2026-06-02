@@ -34,8 +34,8 @@ const itemTypes: Array<{
 }> = [
   {
     type: 'login',
-    title: 'Login',
-    description: 'Store username, password, website and notes.',
+    title: 'Credential',
+    description: 'Store username, password, website, 2FA and notes.',
     icon: KeyRound,
   },
   {
@@ -60,7 +60,7 @@ const itemTypes: Array<{
 
 function getDialogTitle(selectedType: VaultItemType | null) {
   if (selectedType === 'login') {
-    return 'Create login';
+    return 'Create credential';
   }
 
   if (selectedType === 'totp') {
@@ -72,11 +72,11 @@ function getDialogTitle(selectedType: VaultItemType | null) {
 
 function getDialogDescription(selectedType: VaultItemType | null) {
   if (selectedType === 'login') {
-    return 'Add credentials for an account or exchange.';
+    return 'Add account credentials and optional security details.';
   }
 
   if (selectedType === 'totp') {
-    return 'Add a two-factor authentication secret.';
+    return 'Add a standalone two-factor authentication secret.';
   }
 
   return 'Choose what kind of encrypted item you want to store.';
