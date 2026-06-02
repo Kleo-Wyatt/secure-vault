@@ -19,6 +19,8 @@ use crate::items::totp::{
     create_totp_item, delete_totp_file_item, generate_totp_code as generate_totp_code_from_item,
 };
 use crate::state::AppState;
+use crate::vault::format::VaultListTemplate;
+use crate::vault::storage::load_vault_file;
 
 #[tauri::command]
 pub async fn create_item(
@@ -28,10 +30,13 @@ pub async fn create_item(
 ) -> Result<VaultItemDetail, String> {
     let vault_key = require_unlocked_vault_key(&state)?;
     let repository = VaultItemRepository::new(&app);
+    let list_id = normalize_optional_list_id(args.list_id)?;
+
+    validate_create_item_list(&app, list_id.as_deref(), &args.item_type)?;
 
     let (item, file_item) = match args.item_type.as_str() {
-        "login" => create_login_item(args.login, &vault_key)?,
-        "totp" => create_totp_item(args.totp, &vault_key)?,
+        "login" => create_login_item(args.login, list_id, &vault_key)?,
+        "totp" => create_totp_item(args.totp, list_id, &vault_key)?,
         _ => {
             return Err("Unsupported item type.".to_string());
         }
@@ -177,4 +182,48 @@ pub async fn delete_item(
     remove_runtime_item(&state, &item_id)?;
 
     Ok(())
+}
+
+fn normalize_optional_list_id(list_id: Option<String>) -> Result<Option<String>, String> {
+    let Some(list_id) = list_id else {
+        return Ok(None);
+    };
+
+    let list_id = list_id.trim().to_string();
+
+    if list_id.is_empty() {
+        return Err("Invalid list id.".to_string());
+    }
+
+    Ok(Some(list_id))
+}
+
+fn validate_create_item_list(
+    app: &tauri::AppHandle,
+    list_id: Option<&str>,
+    item_type: &str,
+) -> Result<(), String> {
+    let Some(list_id) = list_id else {
+        return Ok(());
+    };
+
+    let vault_file = load_vault_file(app)?;
+
+    let Some(list) = vault_file.lists.iter().find(|list| list.id == list_id) else {
+        return Err("Vault list was not found.".to_string());
+    };
+
+    validate_item_type_allowed_by_template(item_type, &list.template)
+}
+
+fn validate_item_type_allowed_by_template(
+    item_type: &str,
+    template: &VaultListTemplate,
+) -> Result<(), String> {
+    match item_type {
+        "login" if template.login => Ok(()),
+        "totp" if template.totp => Ok(()),
+        "login" | "totp" => Err("Item type is not enabled for this list.".to_string()),
+        _ => Err("Unsupported item type.".to_string()),
+    }
 }

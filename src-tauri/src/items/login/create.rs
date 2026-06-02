@@ -13,6 +13,7 @@ use crate::vault::format::{VaultFileItem, VaultItemMetadata};
 
 pub fn create_login_item(
     payload: Option<CreateLoginItemPayload>,
+    list_id: Option<String>,
     vault_key: &VaultKey,
 ) -> Result<(VaultItemDetail, VaultFileItem), String> {
     let Some(login) = payload else {
@@ -47,7 +48,7 @@ pub fn create_login_item(
 
     let file_item = VaultFileItem {
         id: item_id.clone(),
-        list_id: None,
+        list_id: list_id.clone(),
         item_type,
         metadata: VaultItemMetadata {
             title: title.clone(),
@@ -58,7 +59,15 @@ pub fn create_login_item(
         encrypted_payload,
     };
 
-    let item = login_detail(item_id, None, title, description, username, website, notes);
+    let item = login_detail(
+        item_id,
+        list_id,
+        title,
+        description,
+        username,
+        website,
+        notes,
+    );
 
     Ok((item, file_item))
 }

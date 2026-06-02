@@ -6,6 +6,7 @@ use crate::items::model::{CreateLoginItemPayload, CreateTotpItemPayload, UpdateL
 #[serde(rename_all = "camelCase")]
 pub struct CreateItemArgs {
     pub item_type: String,
+    pub list_id: Option<String>,
     pub login: Option<CreateLoginItemPayload>,
     pub totp: Option<CreateTotpItemPayload>,
 }
