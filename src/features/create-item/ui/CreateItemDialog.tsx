@@ -84,7 +84,7 @@ function getDialogDescription(selectedType: VaultItemType | null) {
 
 function getAvailableItemTypes(selectedVaultList?: VaultList) {
   if (!selectedVaultList) {
-    return itemTypes;
+    return [];
   }
 
   const { template } = selectedVaultList;

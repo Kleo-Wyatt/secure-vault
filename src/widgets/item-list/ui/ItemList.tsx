@@ -87,11 +87,13 @@ export function ItemList({
           />
         </div>
 
-        <CreateItemDialog
-          selectedVaultList={selectedVaultList}
-          onCreateLogin={onCreateLogin}
-          onCreateTotp={onCreateTotp}
-        />
+        {selectedVaultList ? (
+          <CreateItemDialog
+            selectedVaultList={selectedVaultList}
+            onCreateLogin={onCreateLogin}
+            onCreateTotp={onCreateTotp}
+          />
+        ) : null}
       </div>
 
       {filteredItems.length === 0 ? (
