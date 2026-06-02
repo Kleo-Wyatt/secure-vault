@@ -1,10 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 
-import {
-  type VaultItemDetail,
-  type VaultItemSummary,
-  type VaultItemType,
-} from '@/entities/item';
+import { type VaultItemDetail, type VaultItemSummary } from '@/entities/item';
 import {
   createLoginItem,
   createTotpItem,
@@ -12,10 +8,9 @@ import {
   type CreateTotpItemInput,
 } from '@/features/create-item';
 import { listItems } from '@/features/list-items';
+import { listVaultLists, type VaultList } from '@/features/vault-lists';
 
-export type VaultItemTypeFilter = VaultItemType | 'all';
-
-export type VaultItemTypeCounts = Record<VaultItemTypeFilter, number>;
+const ALL_ITEMS_LIST_ID = 'all';
 
 function toItemSummary(item: VaultItemDetail): VaultItemSummary {
   return {
@@ -28,32 +23,12 @@ function toItemSummary(item: VaultItemDetail): VaultItemSummary {
   };
 }
 
-function filterItemsByType(
-  items: VaultItemDetail[],
-  typeFilter: VaultItemTypeFilter,
-) {
-  if (typeFilter === 'all') {
+function filterItemsByList(items: VaultItemDetail[], selectedListId: string) {
+  if (selectedListId === ALL_ITEMS_LIST_ID) {
     return items;
   }
 
-  return items.filter((item) => item.type === typeFilter);
-}
-
-function getItemTypeCounts(items: VaultItemDetail[]): VaultItemTypeCounts {
-  return items.reduce<VaultItemTypeCounts>(
-    (counts, item) => ({
-      ...counts,
-      all: counts.all + 1,
-      [item.type]: counts[item.type] + 1,
-    }),
-    {
-      all: 0,
-      login: 0,
-      totp: 0,
-      seed_phrase: 0,
-      secure_note: 0,
-    },
-  );
+  return items.filter((item) => item.listId === selectedListId);
 }
 
 function getFirstItemId(items: VaultItemDetail[]) {
@@ -85,38 +60,39 @@ function getNextSelectedItemId(
   return remainingItems[nextIndex]?.id ?? '';
 }
 
-function getTypeFilterForCreatedItem(
-  currentFilter: VaultItemTypeFilter,
-  createdItemType: VaultItemType,
-): VaultItemTypeFilter {
-  if (currentFilter === 'all' || currentFilter === createdItemType) {
-    return currentFilter;
+function getCreateListId(selectedListId: string) {
+  if (selectedListId === ALL_ITEMS_LIST_ID) {
+    return undefined;
   }
 
-  return createdItemType;
+  return selectedListId;
 }
 
 export function useVaultItems() {
   const [items, setItems] = useState<VaultItemDetail[]>([]);
+  const [vaultLists, setVaultLists] = useState<VaultList[]>([]);
   const [selectedItemId, setSelectedItemId] = useState('');
-  const [selectedItemType, setSelectedItemType] =
-    useState<VaultItemTypeFilter>('all');
+  const [selectedListId, setSelectedListId] = useState(ALL_ITEMS_LIST_ID);
   const [isLoadingItems, setIsLoadingItems] = useState(true);
 
   useEffect(() => {
     let isMounted = true;
 
-    async function loadItems() {
+    async function loadVaultData() {
       setIsLoadingItems(true);
 
       try {
-        const loadedItems = await listItems();
+        const [loadedItems, loadedLists] = await Promise.all([
+          listItems(),
+          listVaultLists(),
+        ]);
 
         if (!isMounted) {
           return;
         }
 
         setItems(loadedItems);
+        setVaultLists(loadedLists);
         setSelectedItemId((currentSelectedId) => {
           if (
             currentSelectedId &&
@@ -133,6 +109,7 @@ export function useVaultItems() {
         }
 
         setItems([]);
+        setVaultLists([]);
         setSelectedItemId('');
       } finally {
         if (isMounted) {
@@ -141,18 +118,16 @@ export function useVaultItems() {
       }
     }
 
-    void loadItems();
+    void loadVaultData();
 
     return () => {
       isMounted = false;
     };
   }, []);
 
-  const itemTypeCounts = useMemo(() => getItemTypeCounts(items), [items]);
-
   const filteredItems = useMemo(
-    () => filterItemsByType(items, selectedItemType),
-    [items, selectedItemType],
+    () => filterItemsByList(items, selectedListId),
+    [items, selectedListId],
   );
 
   const itemSummaries = useMemo(
@@ -165,10 +140,10 @@ export function useVaultItems() {
     [items, selectedItemId],
   );
 
-  function handleSelectItemType(typeFilter: VaultItemTypeFilter) {
-    setSelectedItemType(typeFilter);
+  function handleSelectList(nextSelectedListId: string) {
+    setSelectedListId(nextSelectedListId);
 
-    const nextItems = filterItemsByType(items, typeFilter);
+    const nextItems = filterItemsByList(items, nextSelectedListId);
 
     setSelectedItemId((currentSelectedId) => {
       if (
@@ -183,22 +158,22 @@ export function useVaultItems() {
   }
 
   async function handleCreateLogin(input: CreateLoginItemInput) {
-    const newItem = await createLoginItem(input);
+    const newItem = await createLoginItem({
+      ...input,
+      listId: getCreateListId(selectedListId),
+    });
 
     setItems((currentItems) => [newItem, ...currentItems]);
-    setSelectedItemType((currentFilter) =>
-      getTypeFilterForCreatedItem(currentFilter, newItem.type),
-    );
     setSelectedItemId(newItem.id);
   }
 
   async function handleCreateTotp(input: CreateTotpItemInput) {
-    const newItem = await createTotpItem(input);
+    const newItem = await createTotpItem({
+      ...input,
+      listId: getCreateListId(selectedListId),
+    });
 
     setItems((currentItems) => [newItem, ...currentItems]);
-    setSelectedItemType((currentFilter) =>
-      getTypeFilterForCreatedItem(currentFilter, newItem.type),
-    );
     setSelectedItemId(newItem.id);
   }
 
@@ -212,7 +187,7 @@ export function useVaultItems() {
   }
 
   function handleItemDeleted(deletedItemId: string) {
-    const nextVisibleItems = filterItemsByType(items, selectedItemType);
+    const nextVisibleItems = filterItemsByList(items, selectedListId);
     const nextSelectedItemId = getNextSelectedItemId(
       nextVisibleItems,
       deletedItemId,
@@ -226,13 +201,13 @@ export function useVaultItems() {
 
   return {
     itemSummaries,
-    itemTypeCounts,
+    vaultLists,
     selectedItem,
     selectedItemId,
-    selectedItemType,
+    selectedListId,
     isLoadingItems,
     handleSelectItem: setSelectedItemId,
-    handleSelectItemType,
+    handleSelectList,
     handleCreateLogin,
     handleCreateTotp,
     handleItemUpdated,

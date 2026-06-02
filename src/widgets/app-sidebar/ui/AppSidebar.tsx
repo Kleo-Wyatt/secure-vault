@@ -1,52 +1,23 @@
 import { ShieldCheck } from 'lucide-react';
 
-import type { VaultItemType } from '@/entities/item';
+import type { VaultList } from '@/features/vault-lists';
 import { LockVaultButton } from '@/features/lock-vault';
 import { cn } from '@/shared/lib/utils';
-import { Badge } from '@/shared/ui/badge';
 import { Button } from '@/shared/ui/button';
 
-export type SidebarItemTypeFilter = VaultItemType | 'all';
-
-export type SidebarItemTypeCounts = Record<SidebarItemTypeFilter, number>;
-
 type AppSidebarProps = {
-  selectedItemType: SidebarItemTypeFilter;
-  itemTypeCounts: SidebarItemTypeCounts;
-  onSelectItemType: (type: SidebarItemTypeFilter) => void;
+  vaultLists: VaultList[];
+  selectedListId: string;
+  onSelectList: (listId: string) => void;
   onLock: () => void;
 };
 
-const itemTypeFilters: Array<{
-  value: SidebarItemTypeFilter;
-  label: string;
-}> = [
-  {
-    value: 'all',
-    label: 'All items',
-  },
-  {
-    value: 'login',
-    label: 'Logins',
-  },
-  {
-    value: 'totp',
-    label: 'TOTP',
-  },
-  {
-    value: 'seed_phrase',
-    label: 'Seed phrases',
-  },
-  {
-    value: 'secure_note',
-    label: 'Secure notes',
-  },
-];
+const ALL_ITEMS_LIST_ID = 'all';
 
 export function AppSidebar({
-  selectedItemType,
-  itemTypeCounts,
-  onSelectItemType,
+  vaultLists,
+  selectedListId,
+  onSelectList,
   onLock,
 }: AppSidebarProps) {
   return (
@@ -63,28 +34,39 @@ export function AppSidebar({
       </div>
 
       <nav className="flex flex-col gap-1">
-        {itemTypeFilters.map((filter) => {
-          const isSelected = filter.value === selectedItemType;
-          const count = itemTypeCounts[filter.value];
+        <Button
+          type="button"
+          variant={selectedListId === ALL_ITEMS_LIST_ID ? 'secondary' : 'ghost'}
+          className={cn(
+            'justify-start',
+            selectedListId === ALL_ITEMS_LIST_ID && 'font-medium',
+          )}
+          onClick={() => onSelectList(ALL_ITEMS_LIST_ID)}
+        >
+          All items
+        </Button>
 
-          return (
-            <Button
-              key={filter.value}
-              type="button"
-              variant={isSelected ? 'secondary' : 'ghost'}
-              className={cn(
-                'w-full justify-between',
-                isSelected && 'font-medium',
-              )}
-              onClick={() => onSelectItemType(filter.value)}
-            >
-              <span>{filter.label}</span>
-              <Badge variant={isSelected ? 'default' : 'secondary'}>
-                {count}
-              </Badge>
-            </Button>
-          );
-        })}
+        {vaultLists.length > 0 ? (
+          vaultLists.map((list) => {
+            const isSelected = list.id === selectedListId;
+
+            return (
+              <Button
+                key={list.id}
+                type="button"
+                variant={isSelected ? 'secondary' : 'ghost'}
+                className={cn('justify-start', isSelected && 'font-medium')}
+                onClick={() => onSelectList(list.id)}
+              >
+                {list.name}
+              </Button>
+            );
+          })
+        ) : (
+          <p className="px-3 py-2 text-xs text-muted-foreground">
+            No lists yet.
+          </p>
+        )}
       </nav>
 
       <div className="mt-8 flex flex-col gap-1">
