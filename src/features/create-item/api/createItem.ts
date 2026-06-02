@@ -7,33 +7,41 @@ import { callTauriCommand } from '@/shared/api/tauri';
 
 type CreateLoginItemArgs = {
   itemType: 'login';
-  login: CreateLoginItemInput;
+  listId?: string;
+  login: Omit<CreateLoginItemInput, 'listId'>;
 };
 
 type CreateTotpItemArgs = {
   itemType: 'totp';
-  totp: CreateTotpItemInput;
+  listId?: string;
+  totp: Omit<CreateTotpItemInput, 'listId'>;
 };
 
 export function createLoginItem(input: CreateLoginItemInput) {
+  const { listId, ...login } = input;
+
   return callTauriCommand<VaultItemDetail, { args: CreateLoginItemArgs }>(
     'create_item',
     {
       args: {
         itemType: 'login',
-        login: input,
+        listId,
+        login,
       },
     },
   );
 }
 
 export function createTotpItem(input: CreateTotpItemInput) {
+  const { listId, ...totp } = input;
+
   return callTauriCommand<VaultItemDetail, { args: CreateTotpItemArgs }>(
     'create_item',
     {
       args: {
         itemType: 'totp',
-        totp: input,
+        listId,
+        totp,
       },
     },
   );

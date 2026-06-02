@@ -1,4 +1,5 @@
 export type CreateLoginItemInput = {
+  listId?: string;
   title: string;
   username?: string;
   password: string;
@@ -7,6 +8,7 @@ export type CreateLoginItemInput = {
 };
 
 export type CreateTotpItemInput = {
+  listId?: string;
   title: string;
   issuer?: string;
   account: string;
