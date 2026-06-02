@@ -2,9 +2,11 @@ import type { VaultItemDetail } from '@/entities/item';
 import { EditLoginItemDialog } from '@/features/update-item';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 
+import { useTotpItemDetail } from '../model/useTotpItemDetail';
 import { LoginDeleteSection } from './LoginDeleteSection';
 import { LoginMetadataSection } from './LoginMetadataSection';
 import { LoginPasswordSection } from './LoginPasswordSection';
+import { TotpCodeSection } from './TotpCodeSection';
 
 type LoginItem = Extract<VaultItemDetail, { type: 'login' }>;
 
@@ -39,6 +41,19 @@ export function LoginItemDetail({
   onDeleteLoginItem,
   onItemUpdated,
 }: LoginItemDetailProps) {
+  const {
+    code,
+    expiresIn,
+    isLoadingCode,
+    isCopyingCode,
+    codeError,
+    copyMessage: totpCopyMessage,
+    refreshCode,
+    handleCopyCode,
+  } = useTotpItemDetail({
+    itemId: item.hasTotp ? item.id : undefined,
+  });
+
   return (
     <section className="p-6">
       <Card className="max-w-2xl">
@@ -65,6 +80,19 @@ export function LoginItemDetail({
             onHidePassword={onHidePassword}
             onCopyPassword={() => onCopyPassword(item.id)}
           />
+
+          {item.hasTotp ? (
+            <TotpCodeSection
+              code={code}
+              expiresIn={expiresIn}
+              isLoadingCode={isLoadingCode}
+              isCopyingCode={isCopyingCode}
+              codeError={codeError}
+              copyMessage={totpCopyMessage}
+              onRetryCode={refreshCode}
+              onCopyCode={handleCopyCode}
+            />
+          ) : null}
 
           <LoginDeleteSection
             title={item.title}
