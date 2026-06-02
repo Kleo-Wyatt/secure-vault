@@ -6,6 +6,7 @@ export type VaultItemSummary = {
   title: string;
   type: VaultItemType;
   description: string;
+  hasTotp?: boolean;
   isHighSecurity?: boolean;
 };
 

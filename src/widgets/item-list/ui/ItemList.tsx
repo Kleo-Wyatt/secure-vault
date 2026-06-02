@@ -21,10 +21,10 @@ type ItemListProps = {
   onCreateTotp: (input: CreateTotpItemInput) => void;
 };
 
-function getItemTypeLabel(type: VaultItemSummary['type']) {
-  switch (type) {
+function getItemTypeLabel(item: VaultItemSummary) {
+  switch (item.type) {
     case 'login':
-      return 'Login';
+      return item.hasTotp ? 'Credential · 2FA' : 'Credential';
     case 'totp':
       return 'TOTP';
     case 'seed_phrase':
@@ -34,6 +34,14 @@ function getItemTypeLabel(type: VaultItemSummary['type']) {
   }
 }
 
+function getItemDescription(item: VaultItemSummary) {
+  if (item.type === 'login' && item.description === 'Login') {
+    return null;
+  }
+
+  return item.description;
+}
+
 function matchesSearch(item: VaultItemSummary, searchQuery: string) {
   const normalizedQuery = searchQuery.trim().toLowerCase();
 
@@ -41,11 +49,10 @@ function matchesSearch(item: VaultItemSummary, searchQuery: string) {
     return true;
   }
 
-  const searchableText = [
-    item.title,
-    item.description,
-    getItemTypeLabel(item.type),
-  ]
+  const description = getItemDescription(item);
+
+  const searchableText = [item.title, description, getItemTypeLabel(item)]
+    .filter(Boolean)
     .join(' ')
     .toLowerCase();
 
@@ -97,6 +104,7 @@ export function ItemList({
         <div className="flex flex-col gap-2">
           {filteredItems.map((item) => {
             const isSelected = item.id === selectedItemId;
+            const description = getItemDescription(item);
 
             return (
               <button
@@ -117,12 +125,15 @@ export function ItemList({
 
                   <CardContent>
                     <p className="text-xs text-muted-foreground">
-                      {getItemTypeLabel(item.type)}
+                      {getItemTypeLabel(item)}
                       {item.isHighSecurity ? ' · High security' : ''}
                     </p>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      {item.description}
-                    </p>
+
+                    {description ? (
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {description}
+                      </p>
+                    ) : null}
                   </CardContent>
                 </Card>
               </button>

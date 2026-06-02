@@ -24,6 +24,7 @@ function toItemSummary(item: VaultItemDetail): VaultItemSummary {
     title: item.title,
     type: item.type,
     description: item.description,
+    hasTotp: item.type === 'login' ? item.hasTotp : undefined,
     isHighSecurity: item.isHighSecurity,
   };
 }
