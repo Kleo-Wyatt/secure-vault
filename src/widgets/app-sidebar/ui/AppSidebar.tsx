@@ -1,6 +1,10 @@
 import { ShieldCheck } from 'lucide-react';
 
-import type { VaultList } from '@/features/vault-lists';
+import {
+  CreateVaultListDialog,
+  type CreateVaultListInput,
+  type VaultList,
+} from '@/features/vault-lists';
 import { LockVaultButton } from '@/features/lock-vault';
 import { cn } from '@/shared/lib/utils';
 import { Button } from '@/shared/ui/button';
@@ -9,6 +13,7 @@ type AppSidebarProps = {
   vaultLists: VaultList[];
   selectedListId: string;
   onSelectList: (listId: string) => void;
+  onCreateList: (input: CreateVaultListInput) => Promise<void> | void;
   onLock: () => void;
 };
 
@@ -18,6 +23,7 @@ export function AppSidebar({
   vaultLists,
   selectedListId,
   onSelectList,
+  onCreateList,
   onLock,
 }: AppSidebarProps) {
   return (
@@ -31,6 +37,10 @@ export function AppSidebar({
           <p className="text-sm font-semibold">Secure Vault</p>
           <p className="text-xs text-muted-foreground">Unlocked</p>
         </div>
+      </div>
+
+      <div className="mb-4">
+        <CreateVaultListDialog onCreate={onCreateList} />
       </div>
 
       <nav className="flex flex-col gap-1">

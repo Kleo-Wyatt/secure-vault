@@ -8,7 +8,12 @@ import {
   type CreateTotpItemInput,
 } from '@/features/create-item';
 import { listItems } from '@/features/list-items';
-import { listVaultLists, type VaultList } from '@/features/vault-lists';
+import {
+  createVaultList,
+  listVaultLists,
+  type CreateVaultListInput,
+  type VaultList,
+} from '@/features/vault-lists';
 
 const ALL_ITEMS_LIST_ID = 'all';
 
@@ -177,6 +182,14 @@ export function useVaultItems() {
     setSelectedItemId(newItem.id);
   }
 
+  async function handleCreateVaultList(input: CreateVaultListInput) {
+    const newList = await createVaultList(input);
+
+    setVaultLists((currentLists) => [newList, ...currentLists]);
+    setSelectedListId(newList.id);
+    setSelectedItemId('');
+  }
+
   function handleItemUpdated(updatedItem: VaultItemDetail) {
     setItems((currentItems) =>
       currentItems.map((item) =>
@@ -210,6 +223,7 @@ export function useVaultItems() {
     handleSelectList,
     handleCreateLogin,
     handleCreateTotp,
+    handleCreateVaultList,
     handleItemUpdated,
     handleItemDeleted,
   };

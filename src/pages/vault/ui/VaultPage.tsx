@@ -19,6 +19,7 @@ export function VaultPage({ onLock }: VaultPageProps) {
     isLoadingItems,
     handleSelectItem,
     handleSelectList,
+    handleCreateVaultList,
     handleCreateLogin,
     handleCreateTotp,
     handleItemUpdated,
@@ -32,6 +33,7 @@ export function VaultPage({ onLock }: VaultPageProps) {
           vaultLists={vaultLists}
           selectedListId={selectedListId}
           onSelectList={handleSelectList}
+          onCreateList={handleCreateVaultList}
           onLock={onLock}
         />
       }
