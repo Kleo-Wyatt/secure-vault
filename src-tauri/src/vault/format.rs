@@ -50,9 +50,27 @@ pub struct VaultFileList {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct VaultListTemplate {
+    #[serde(default)]
+    pub kind: VaultListKind,
+
     pub login: bool,
     pub totp: bool,
     pub notes: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum VaultListKind {
+    Credentials,
+    SeedPhrase,
+    BankCard,
+    SecureNote,
+}
+
+impl Default for VaultListKind {
+    fn default() -> Self {
+        Self::Credentials
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -216,11 +234,35 @@ impl VaultFileList {
 
 impl VaultListTemplate {
     pub fn validate(&self) -> Result<(), String> {
-        if !self.login && !self.totp && !self.notes {
-            return Err("List template must include at least one field group.".to_string());
-        }
+        match self.kind {
+            VaultListKind::Credentials => {
+                if !self.login && !self.totp {
+                    return Err(
+                        "Credentials list must include login credentials or TOTP.".to_string()
+                    );
+                }
 
-        Ok(())
+                if !self.notes {
+                    return Err("Credentials list must include notes.".to_string());
+                }
+
+                Ok(())
+            }
+            VaultListKind::SeedPhrase | VaultListKind::BankCard => {
+                if self.login || self.totp || !self.notes {
+                    return Err("Invalid list template for this list kind.".to_string());
+                }
+
+                Ok(())
+            }
+            VaultListKind::SecureNote => {
+                if self.login || self.totp || self.notes {
+                    return Err("Invalid secure note list template.".to_string());
+                }
+
+                Ok(())
+            }
+        }
     }
 }
 
@@ -374,6 +416,7 @@ mod tests {
                 id: "list-1".to_string(),
                 name: "Crypto exchanges".to_string(),
                 template: VaultListTemplate {
+                    kind: VaultListKind::Credentials,
                     login: true,
                     totp: true,
                     notes: true,
@@ -388,7 +431,7 @@ mod tests {
     }
 
     #[test]
-    fn rejects_list_without_enabled_field_groups() {
+    fn rejects_credentials_list_without_login_or_totp() {
         let vault_file = VaultFile {
             format: VAULT_FORMAT.to_string(),
             version: VAULT_VERSION,
@@ -398,11 +441,12 @@ mod tests {
             encrypted_vault_key: encrypted_vault_key(),
             lists: vec![VaultFileList {
                 id: "list-1".to_string(),
-                name: "Empty template".to_string(),
+                name: "Invalid credentials list".to_string(),
                 template: VaultListTemplate {
+                    kind: VaultListKind::Credentials,
                     login: false,
                     totp: false,
-                    notes: false,
+                    notes: true,
                 },
                 created_at: "2026-05-28T00:00:00Z".to_string(),
                 updated_at: "2026-05-28T00:00:00Z".to_string(),
@@ -411,5 +455,41 @@ mod tests {
         };
 
         assert!(vault_file.validate().is_err());
+    }
+
+    #[test]
+    fn validates_seed_phrase_list_template() {
+        let template = VaultListTemplate {
+            kind: VaultListKind::SeedPhrase,
+            login: false,
+            totp: false,
+            notes: true,
+        };
+
+        assert!(template.validate().is_ok());
+    }
+
+    #[test]
+    fn validates_bank_card_list_template() {
+        let template = VaultListTemplate {
+            kind: VaultListKind::BankCard,
+            login: false,
+            totp: false,
+            notes: true,
+        };
+
+        assert!(template.validate().is_ok());
+    }
+
+    #[test]
+    fn validates_secure_note_list_template() {
+        let template = VaultListTemplate {
+            kind: VaultListKind::SecureNote,
+            login: false,
+            totp: false,
+            notes: false,
+        };
+
+        assert!(template.validate().is_ok());
     }
 }

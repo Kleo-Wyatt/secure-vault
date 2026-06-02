@@ -4,7 +4,7 @@ use tauri::State;
 use uuid::Uuid;
 
 use crate::state::AppState;
-use crate::vault::format::{VaultFileList, VaultListTemplate};
+use crate::vault::format::{VaultFileList, VaultListKind, VaultListTemplate};
 use crate::vault::storage::{load_vault_file, save_vault_file};
 
 #[derive(Debug, Deserialize)]
@@ -17,6 +17,7 @@ pub struct CreateVaultListArgs {
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct VaultListTemplateArgs {
+    pub kind: VaultListKind,
     pub login: bool,
     pub totp: bool,
     pub notes: bool,
@@ -35,6 +36,7 @@ pub struct VaultListResult {
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct VaultListTemplateResult {
+    pub kind: VaultListKind,
     pub login: bool,
     pub totp: bool,
     pub notes: bool,
@@ -118,6 +120,7 @@ fn normalize_required_list_name(name: &str) -> Result<String, String> {
 
 fn vault_list_template(args: VaultListTemplateArgs) -> Result<VaultListTemplate, String> {
     let template = VaultListTemplate {
+        kind: args.kind,
         login: args.login,
         totp: args.totp,
         notes: args.notes,
@@ -133,6 +136,7 @@ fn vault_list_result(list: VaultFileList) -> VaultListResult {
         id: list.id,
         name: list.name,
         template: VaultListTemplateResult {
+            kind: list.template.kind,
             login: list.template.login,
             totp: list.template.totp,
             notes: list.template.notes,

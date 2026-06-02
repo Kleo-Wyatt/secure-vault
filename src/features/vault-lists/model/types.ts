@@ -1,4 +1,11 @@
+export type VaultListKind =
+  | 'credentials'
+  | 'seed_phrase'
+  | 'bank_card'
+  | 'secure_note';
+
 export type VaultListTemplate = {
+  kind: VaultListKind;
   login: boolean;
   totp: boolean;
   notes: boolean;
