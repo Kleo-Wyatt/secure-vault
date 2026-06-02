@@ -13,6 +13,7 @@ export function VaultPage({ onLock }: VaultPageProps) {
   const {
     itemSummaries,
     vaultLists,
+    selectedVaultList,
     selectedItem,
     selectedItemId,
     selectedListId,
@@ -40,6 +41,7 @@ export function VaultPage({ onLock }: VaultPageProps) {
       itemList={
         <ItemList
           items={itemSummaries}
+          selectedVaultList={selectedVaultList}
           selectedItemId={selectedItemId}
           onSelectItem={handleSelectItem}
           onCreateLogin={handleCreateLogin}

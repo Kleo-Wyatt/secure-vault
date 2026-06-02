@@ -8,6 +8,7 @@ import type {
 } from '@/features/create-item/model/types';
 import { CreateLoginItemForm } from '@/features/create-item/ui/CreateLoginItemForm';
 import { CreateTotpItemForm } from '@/features/create-item/ui/CreateTotpItemForm';
+import type { VaultList } from '@/features/vault-lists';
 import { Button } from '@/shared/ui/button';
 import {
   Dialog,
@@ -19,6 +20,7 @@ import {
 } from '@/shared/ui/dialog';
 
 type CreateItemDialogProps = {
+  selectedVaultList?: VaultList;
   onSelectType?: (type: VaultItemType) => void;
   onCreateLogin?: (input: CreateLoginItemInput) => Promise<void> | void;
   onCreateTotp?: (input: CreateTotpItemInput) => Promise<void> | void;
@@ -80,13 +82,47 @@ function getDialogDescription(selectedType: VaultItemType | null) {
   return 'Choose what kind of encrypted item you want to store.';
 }
 
+function getAvailableItemTypes(selectedVaultList?: VaultList) {
+  if (!selectedVaultList) {
+    return itemTypes;
+  }
+
+  const { template } = selectedVaultList;
+
+  if (template.kind === 'credentials') {
+    return itemTypes.filter((itemType) => {
+      if (itemType.type === 'login') {
+        return template.login;
+      }
+
+      if (itemType.type === 'totp') {
+        return template.totp;
+      }
+
+      return false;
+    });
+  }
+
+  if (template.kind === 'seed_phrase') {
+    return itemTypes.filter((itemType) => itemType.type === 'seed_phrase');
+  }
+
+  if (template.kind === 'secure_note') {
+    return itemTypes.filter((itemType) => itemType.type === 'secure_note');
+  }
+
+  return [];
+}
+
 export function CreateItemDialog({
+  selectedVaultList,
   onSelectType,
   onCreateLogin,
   onCreateTotp,
 }: CreateItemDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedType, setSelectedType] = useState<VaultItemType | null>(null);
+  const availableItemTypes = getAvailableItemTypes(selectedVaultList);
 
   function handleSelectType(type: VaultItemType) {
     setSelectedType(type);
@@ -139,29 +175,41 @@ export function CreateItemDialog({
 
     return (
       <div className="grid gap-2">
-        {itemTypes.map((itemType) => {
-          const Icon = itemType.icon;
+        {selectedVaultList ? (
+          <div className="rounded-lg border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
+            Creating item in “{selectedVaultList.name}”.
+          </div>
+        ) : null}
 
-          return (
-            <button
-              key={itemType.type}
-              type="button"
-              className="flex gap-3 rounded-xl border p-4 text-left transition hover:bg-muted/60"
-              onClick={() => handleSelectType(itemType.type)}
-            >
-              <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-muted">
-                <Icon className="size-5" />
-              </div>
+        {availableItemTypes.length > 0 ? (
+          availableItemTypes.map((itemType) => {
+            const Icon = itemType.icon;
 
-              <div>
-                <p className="text-sm font-medium">{itemType.title}</p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {itemType.description}
-                </p>
-              </div>
-            </button>
-          );
-        })}
+            return (
+              <button
+                key={itemType.type}
+                type="button"
+                className="flex gap-3 rounded-xl border p-4 text-left transition hover:bg-muted/60"
+                onClick={() => handleSelectType(itemType.type)}
+              >
+                <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-muted">
+                  <Icon className="size-5" />
+                </div>
+
+                <div>
+                  <p className="text-sm font-medium">{itemType.title}</p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {itemType.description}
+                  </p>
+                </div>
+              </button>
+            );
+          })
+        ) : (
+          <p className="rounded-lg border bg-muted/30 px-3 py-2 text-sm text-muted-foreground">
+            This list type does not have an item creation flow yet.
+          </p>
+        )}
       </div>
     );
   }

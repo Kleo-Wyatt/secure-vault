@@ -145,6 +145,11 @@ export function useVaultItems() {
     [items, selectedItemId],
   );
 
+  const selectedVaultList = useMemo(
+    () => vaultLists.find((list) => list.id === selectedListId),
+    [vaultLists, selectedListId],
+  );
+
   function handleSelectList(nextSelectedListId: string) {
     setSelectedListId(nextSelectedListId);
 
@@ -215,15 +220,16 @@ export function useVaultItems() {
   return {
     itemSummaries,
     vaultLists,
+    selectedVaultList,
     selectedItem,
     selectedItemId,
     selectedListId,
     isLoadingItems,
     handleSelectItem: setSelectedItemId,
     handleSelectList,
+    handleCreateVaultList,
     handleCreateLogin,
     handleCreateTotp,
-    handleCreateVaultList,
     handleItemUpdated,
     handleItemDeleted,
   };

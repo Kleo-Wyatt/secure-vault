@@ -7,12 +7,14 @@ import {
   type CreateLoginItemInput,
   type CreateTotpItemInput,
 } from '@/features/create-item';
+import type { VaultList } from '@/features/vault-lists';
 import { cn } from '@/shared/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Input } from '@/shared/ui/input';
 
 type ItemListProps = {
   items: VaultItemSummary[];
+  selectedVaultList?: VaultList;
   selectedItemId?: string;
   onSelectItem: (itemId: string) => void;
   onCreateLogin: (input: CreateLoginItemInput) => void;
@@ -52,6 +54,7 @@ function matchesSearch(item: VaultItemSummary, searchQuery: string) {
 
 export function ItemList({
   items,
+  selectedVaultList,
   selectedItemId,
   onSelectItem,
   onCreateLogin,
@@ -78,6 +81,7 @@ export function ItemList({
         </div>
 
         <CreateItemDialog
+          selectedVaultList={selectedVaultList}
           onCreateLogin={onCreateLogin}
           onCreateTotp={onCreateTotp}
         />
