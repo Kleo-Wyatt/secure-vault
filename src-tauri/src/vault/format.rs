@@ -60,9 +60,10 @@ pub struct VaultListTemplate {
 pub struct VaultFileItem {
     pub id: String,
 
-    #[serde(rename = "type")]
-    pub item_type: String,
+    #[serde(default)]
+    pub list_id: Option<String>,
 
+    pub item_type: String,
     pub metadata: VaultItemMetadata,
     pub encrypted_payload: EncryptedPayload,
 }
@@ -145,6 +146,14 @@ impl VaultFileItem {
             return Err("Invalid item title.".to_string());
         }
 
+        if self
+            .list_id
+            .as_ref()
+            .is_some_and(|list_id| list_id.trim().is_empty())
+        {
+            return Err("Invalid item list id.".to_string());
+        }
+
         validate_encrypted_payload(&self.encrypted_payload)?;
 
         Ok(())
@@ -179,10 +188,6 @@ impl VaultFile {
 
         for list in &self.lists {
             list.validate()?;
-        }
-
-        for item in &self.items {
-            item.validate()?;
         }
 
         for item in &self.items {
@@ -320,6 +325,7 @@ mod tests {
             lists: Vec::new(),
             items: vec![VaultFileItem {
                 id: "item-1".to_string(),
+                list_id: None,
                 item_type: "login".to_string(),
                 metadata: VaultItemMetadata {
                     title: "Binance".to_string(),
@@ -341,6 +347,7 @@ mod tests {
 
         let item = VaultFileItem {
             id: "item-1".to_string(),
+            list_id: None,
             item_type: "login".to_string(),
             metadata: VaultItemMetadata {
                 title: "Binance".to_string(),

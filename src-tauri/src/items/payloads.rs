@@ -88,7 +88,11 @@ fn decrypt_login_item(
 ) -> Result<VaultItemDetail, String> {
     let payload = decrypt_login_payload(file_item, vault_key)?;
 
-    Ok(login_detail_from_payload(file_item.id.clone(), payload))
+    Ok(login_detail_from_payload(
+        file_item.id.clone(),
+        file_item.list_id.clone(),
+        payload,
+    ))
 }
 
 fn decrypt_totp_item(
@@ -97,5 +101,9 @@ fn decrypt_totp_item(
 ) -> Result<VaultItemDetail, String> {
     let payload = decrypt_totp_payload(file_item, vault_key)?;
 
-    Ok(totp_detail_from_payload(file_item.id.clone(), payload))
+    Ok(totp_detail_from_payload(
+        file_item.id.clone(),
+        file_item.list_id.clone(),
+        payload,
+    ))
 }

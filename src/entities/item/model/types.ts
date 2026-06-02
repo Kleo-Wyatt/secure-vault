@@ -2,6 +2,7 @@ export type VaultItemType = 'login' | 'totp' | 'seed_phrase' | 'secure_note';
 
 export type VaultItemSummary = {
   id: string;
+  listId?: string;
   title: string;
   type: VaultItemType;
   description: string;

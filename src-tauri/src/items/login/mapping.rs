@@ -37,6 +37,7 @@ pub fn encrypt_login_payload(
 
 pub fn login_detail(
     id: String,
+    list_id: Option<String>,
     title: String,
     description: String,
     username: Option<String>,
@@ -45,6 +46,7 @@ pub fn login_detail(
 ) -> VaultItemDetail {
     VaultItemDetail {
         id,
+        list_id,
         item_type: VaultItemType::Login,
         title,
         description,
@@ -65,12 +67,14 @@ pub fn login_detail(
 
 pub fn login_detail_from_payload(
     id: String,
+    list_id: Option<String>,
     payload: LoginItemEncryptedPayload,
 ) -> VaultItemDetail {
     let description = login_description(&payload.website);
 
     login_detail(
         id,
+        list_id,
         payload.title,
         description,
         payload.username,

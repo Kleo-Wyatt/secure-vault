@@ -46,6 +46,7 @@ pub struct CreateTotpItemPayload {
 #[serde(rename_all = "camelCase")]
 pub struct VaultItemDetail {
     pub id: String,
+    pub list_id: Option<String>,
 
     #[serde(rename = "type")]
     pub item_type: VaultItemType,

@@ -42,6 +42,7 @@ pub fn encrypt_totp_payload(
 
 pub fn totp_detail(
     id: String,
+    list_id: Option<String>,
     title: String,
     issuer: Option<String>,
     account: String,
@@ -54,6 +55,7 @@ pub fn totp_detail(
 
     VaultItemDetail {
         id,
+        list_id,
         item_type: VaultItemType::Totp,
         title,
         description,
@@ -72,9 +74,14 @@ pub fn totp_detail(
     }
 }
 
-pub fn totp_detail_from_payload(id: String, payload: TotpItemEncryptedPayload) -> VaultItemDetail {
+pub fn totp_detail_from_payload(
+    id: String,
+    list_id: Option<String>,
+    payload: TotpItemEncryptedPayload,
+) -> VaultItemDetail {
     totp_detail(
         id,
+        list_id,
         payload.title,
         payload.issuer,
         payload.account,

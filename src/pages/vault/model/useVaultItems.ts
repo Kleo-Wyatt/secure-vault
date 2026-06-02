@@ -20,6 +20,7 @@ export type VaultItemTypeCounts = Record<VaultItemTypeFilter, number>;
 function toItemSummary(item: VaultItemDetail): VaultItemSummary {
   return {
     id: item.id,
+    listId: item.listId,
     title: item.title,
     type: item.type,
     description: item.description,

@@ -46,6 +46,7 @@ pub fn create_totp_item(
 
     let file_item = VaultFileItem {
         id: item_id.clone(),
+        list_id: None,
         item_type,
         metadata: VaultItemMetadata {
             title: totp.title.clone(),
@@ -58,6 +59,7 @@ pub fn create_totp_item(
 
     let item = totp_detail(
         item_id,
+        None,
         totp.title,
         totp.issuer,
         totp.account,

@@ -59,6 +59,7 @@ pub fn update_login_item(
 
     let file_item = VaultFileItem {
         id: item_id.to_string(),
+        list_id: existing_file_item.list_id.clone(),
         item_type,
         metadata: VaultItemMetadata {
             title: title.clone(),
@@ -73,6 +74,7 @@ pub fn update_login_item(
 
     Ok(login_detail(
         item_id.to_string(),
+        existing_file_item.list_id,
         title,
         description,
         username,
