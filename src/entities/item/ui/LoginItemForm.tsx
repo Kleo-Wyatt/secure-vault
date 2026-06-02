@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
 
 import {
   areLoginItemFormValuesEqual,
@@ -21,6 +21,8 @@ type LoginItemFormProps = {
   resetKey?: string;
   requirePassword?: boolean;
   requireDirty?: boolean;
+  canSubmitExtra?: boolean;
+  extraFieldsBeforeNotes?: ReactNode;
   passwordLabel?: string;
   passwordPlaceholder?: string;
   passwordHelpText?: string;
@@ -39,6 +41,8 @@ export function LoginItemForm({
   resetKey,
   requirePassword = false,
   requireDirty = false,
+  canSubmitExtra = true,
+  extraFieldsBeforeNotes,
   passwordLabel = 'Password',
   passwordPlaceholder = 'Enter password',
   passwordHelpText = 'Password will be encrypted before it is saved.',
@@ -84,6 +88,7 @@ export function LoginItemForm({
     !websiteError &&
     (!requirePassword || password.length > 0) &&
     (!requireDirty || isDirty) &&
+    canSubmitExtra &&
     !isSubmitting;
 
   useEffect(() => {
@@ -174,6 +179,8 @@ export function LoginItemForm({
         autoComplete="url"
         errorMessage={websiteError}
       />
+
+      {extraFieldsBeforeNotes}
 
       <LoginItemTextareaField
         id={`${idPrefix}-notes`}

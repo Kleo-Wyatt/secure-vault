@@ -44,8 +44,6 @@ export function CreateLoginItemForm({
   onBack,
   onCreate,
 }: CreateLoginItemFormProps) {
-  const [totpIssuer, setTotpIssuer] = useState('');
-  const [totpAccount, setTotpAccount] = useState('');
   const [totpSecret, setTotpSecret] = useState('');
   const [isTotpSecretVisible, setIsTotpSecretVisible] = useState(false);
 
@@ -53,14 +51,19 @@ export function CreateLoginItemForm({
     ? getTotpSecretValidationError(totpSecret)
     : null;
 
-  function getTotpInput(): CreateLoginItemTotpInput | undefined {
+  const shouldShowTotpSecretError =
+    Boolean(totpSecret) && Boolean(totpSecretError);
+
+  function getTotpInput(
+    values: LoginItemFormValues,
+  ): CreateLoginItemTotpInput | undefined {
     if (!includeTotp) {
       return undefined;
     }
 
     return {
-      issuer: normalizeOptionalText(totpIssuer),
-      account: normalizeOptionalText(totpAccount),
+      issuer: values.title,
+      account: values.username,
       secret: normalizeTotpSecret(totpSecret),
       algorithm: 'SHA1',
       digits: 6,
@@ -80,15 +83,80 @@ export function CreateLoginItemForm({
       username: values.username,
       password,
       website: values.website,
-      totp: getTotpInput(),
+      totp: getTotpInput(values),
       notes: values.notes,
     });
 
-    setTotpIssuer('');
-    setTotpAccount('');
     setTotpSecret('');
     setIsTotpSecretVisible(false);
   }
+
+  const totpFields = includeTotp ? (
+    <div className="flex flex-col gap-4 rounded-xl border bg-muted/30 p-4">
+      <div>
+        <p className="text-sm font-medium">Two-factor authentication</p>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Add the TOTP secret for this account. The secret will be encrypted
+          with the rest of the item.
+        </p>
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <label
+          className="text-sm font-medium"
+          htmlFor="create-login-totp-secret"
+        >
+          TOTP secret
+        </label>
+
+        <div className="flex gap-2">
+          <Input
+            id="create-login-totp-secret"
+            type={isTotpSecretVisible ? 'text' : 'password'}
+            value={totpSecret}
+            onChange={(event) => setTotpSecret(event.target.value)}
+            placeholder="Base32 secret"
+            autoComplete="off"
+            aria-invalid={shouldShowTotpSecretError}
+            aria-describedby={
+              shouldShowTotpSecretError
+                ? 'create-login-totp-secret-error'
+                : undefined
+            }
+          />
+
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            aria-label={
+              isTotpSecretVisible ? 'Hide TOTP secret' : 'Show TOTP secret'
+            }
+            onClick={() => setIsTotpSecretVisible((value) => !value)}
+          >
+            {isTotpSecretVisible ? (
+              <EyeOff className="size-4" />
+            ) : (
+              <Eye className="size-4" />
+            )}
+          </Button>
+        </div>
+
+        {shouldShowTotpSecretError ? (
+          <p
+            id="create-login-totp-secret-error"
+            className="text-xs text-destructive"
+          >
+            {totpSecretError}
+          </p>
+        ) : (
+          <p className="text-xs text-muted-foreground">
+            Required for this list. Spaces are allowed.
+          </p>
+        )}
+      </div>
+    </div>
+  ) : null;
 
   return (
     <div className="flex flex-col gap-4">
@@ -99,119 +167,20 @@ export function CreateLoginItemForm({
         </Button>
       </div>
 
-      {includeTotp ? (
-        <div className="rounded-lg border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
-          This item will include login credentials and a TOTP secret.
-        </div>
-      ) : null}
-
       <LoginItemForm
         idPrefix="create-login"
         resetKey="create-login"
         requirePassword
-        submitLabel="Create login"
+        canSubmitExtra={!totpSecretError}
+        extraFieldsBeforeNotes={totpFields}
+        submitLabel="Create credential"
         submittingLabel="Creating..."
-        submitErrorMessage="Could not create login item."
+        submitErrorMessage="Could not create credential item."
         cancelLabel="Cancel"
         resetAfterSubmit
         onCancel={onBack}
         onSubmit={handleCreate}
       />
-
-      {includeTotp ? (
-        <div className="flex flex-col gap-4 rounded-xl border bg-muted/30 p-4">
-          <div>
-            <p className="text-sm font-medium">TOTP</p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Add a two-factor authentication secret to this credential.
-            </p>
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <label
-              className="text-sm font-medium"
-              htmlFor="create-login-totp-issuer"
-            >
-              Issuer
-            </label>
-            <Input
-              id="create-login-totp-issuer"
-              value={totpIssuer}
-              onChange={(event) => setTotpIssuer(event.target.value)}
-              placeholder="Binance"
-            />
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <label
-              className="text-sm font-medium"
-              htmlFor="create-login-totp-account"
-            >
-              Account
-            </label>
-            <Input
-              id="create-login-totp-account"
-              value={totpAccount}
-              onChange={(event) => setTotpAccount(event.target.value)}
-              placeholder="name@example.com"
-              autoComplete="username"
-            />
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <label
-              className="text-sm font-medium"
-              htmlFor="create-login-totp-secret"
-            >
-              TOTP secret
-            </label>
-
-            <div className="flex gap-2">
-              <Input
-                id="create-login-totp-secret"
-                type={isTotpSecretVisible ? 'text' : 'password'}
-                value={totpSecret}
-                onChange={(event) => setTotpSecret(event.target.value)}
-                placeholder="Base32 secret"
-                autoComplete="off"
-                aria-invalid={Boolean(totpSecretError)}
-                aria-describedby={
-                  totpSecretError ? 'create-login-totp-secret-error' : undefined
-                }
-              />
-
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                aria-label={
-                  isTotpSecretVisible ? 'Hide TOTP secret' : 'Show TOTP secret'
-                }
-                onClick={() => setIsTotpSecretVisible((value) => !value)}
-              >
-                {isTotpSecretVisible ? (
-                  <EyeOff className="size-4" />
-                ) : (
-                  <Eye className="size-4" />
-                )}
-              </Button>
-            </div>
-
-            {totpSecretError ? (
-              <p
-                id="create-login-totp-secret-error"
-                className="text-xs text-destructive"
-              >
-                {totpSecretError}
-              </p>
-            ) : (
-              <p className="text-xs text-muted-foreground">
-                Spaces are allowed. The secret will be normalized before saving.
-              </p>
-            )}
-          </div>
-        </div>
-      ) : null}
     </div>
   );
 }
