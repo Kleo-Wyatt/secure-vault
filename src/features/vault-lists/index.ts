@@ -5,4 +5,5 @@ export type {
   CreateVaultListInput,
   VaultList,
   VaultListTemplate,
+  VaultListKind,
 } from './model/types';
