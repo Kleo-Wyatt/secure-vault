@@ -1,9 +1,19 @@
+export type CreateLoginItemTotpInput = {
+  issuer?: string;
+  account?: string;
+  secret: string;
+  algorithm?: 'SHA1' | 'SHA256' | 'SHA512';
+  digits?: 6 | 8;
+  period?: number;
+};
+
 export type CreateLoginItemInput = {
   listId?: string;
   title: string;
   username?: string;
   password: string;
   website?: string;
+  totp?: CreateLoginItemTotpInput;
   notes?: string;
 };
 

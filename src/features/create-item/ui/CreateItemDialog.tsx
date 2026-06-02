@@ -91,12 +91,12 @@ function getAvailableItemTypes(selectedVaultList?: VaultList) {
 
   if (template.kind === 'credentials') {
     return itemTypes.filter((itemType) => {
-      if (itemType.type === 'login') {
-        return template.login;
+      if (template.login && itemType.type === 'login') {
+        return true;
       }
 
-      if (itemType.type === 'totp') {
-        return template.totp;
+      if (!template.login && template.totp && itemType.type === 'totp') {
+        return true;
       }
 
       return false;
@@ -122,7 +122,13 @@ export function CreateItemDialog({
 }: CreateItemDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedType, setSelectedType] = useState<VaultItemType | null>(null);
+
   const availableItemTypes = getAvailableItemTypes(selectedVaultList);
+
+  const includeTotpInLoginForm =
+    selectedVaultList?.template.kind === 'credentials' &&
+    selectedVaultList.template.login &&
+    selectedVaultList.template.totp;
 
   function handleSelectType(type: VaultItemType) {
     setSelectedType(type);
@@ -138,6 +144,7 @@ export function CreateItemDialog({
     if (selectedType === 'login') {
       return (
         <CreateLoginItemForm
+          includeTotp={includeTotpInLoginForm}
           onBack={() => setSelectedType(null)}
           onCreate={async (input) => {
             await onCreateLogin?.(input);
