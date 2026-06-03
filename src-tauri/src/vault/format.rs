@@ -53,7 +53,8 @@ pub struct VaultListTemplate {
     #[serde(default)]
     pub kind: VaultListKind,
 
-    pub login: bool,
+    #[serde(default, alias = "login")]
+    pub credentials: bool,
     pub totp: bool,
     pub notes: bool,
 }
@@ -236,10 +237,8 @@ impl VaultListTemplate {
     pub fn validate(&self) -> Result<(), String> {
         match self.kind {
             VaultListKind::Credentials => {
-                if !self.login && !self.totp {
-                    return Err(
-                        "Credentials list must include login credentials or TOTP.".to_string()
-                    );
+                if !self.credentials && !self.totp {
+                    return Err("Credentials list must include credentials or TOTP.".to_string());
                 }
 
                 if !self.notes {
@@ -249,14 +248,14 @@ impl VaultListTemplate {
                 Ok(())
             }
             VaultListKind::SeedPhrase | VaultListKind::BankCard => {
-                if self.login || self.totp || !self.notes {
+                if self.credentials || self.totp || !self.notes {
                     return Err("Invalid list template for this list kind.".to_string());
                 }
 
                 Ok(())
             }
             VaultListKind::SecureNote => {
-                if self.login || self.totp || self.notes {
+                if self.credentials || self.totp || self.notes {
                     return Err("Invalid secure note list template.".to_string());
                 }
 
@@ -417,7 +416,7 @@ mod tests {
                 name: "Crypto exchanges".to_string(),
                 template: VaultListTemplate {
                     kind: VaultListKind::Credentials,
-                    login: true,
+                    credentials: true,
                     totp: true,
                     notes: true,
                 },
@@ -444,7 +443,7 @@ mod tests {
                 name: "Invalid credentials list".to_string(),
                 template: VaultListTemplate {
                     kind: VaultListKind::Credentials,
-                    login: false,
+                    credentials: false,
                     totp: false,
                     notes: true,
                 },
@@ -461,7 +460,7 @@ mod tests {
     fn validates_seed_phrase_list_template() {
         let template = VaultListTemplate {
             kind: VaultListKind::SeedPhrase,
-            login: false,
+            credentials: false,
             totp: false,
             notes: true,
         };
@@ -473,7 +472,7 @@ mod tests {
     fn validates_bank_card_list_template() {
         let template = VaultListTemplate {
             kind: VaultListKind::BankCard,
-            login: false,
+            credentials: false,
             totp: false,
             notes: true,
         };
@@ -485,7 +484,7 @@ mod tests {
     fn validates_secure_note_list_template() {
         let template = VaultListTemplate {
             kind: VaultListKind::SecureNote,
-            login: false,
+            credentials: false,
             totp: false,
             notes: false,
         };

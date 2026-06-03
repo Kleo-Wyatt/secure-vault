@@ -222,7 +222,7 @@ fn validate_item_type_allowed_by_template(
     template: &VaultListTemplate,
 ) -> Result<(), String> {
     match item_type {
-        "login" if template.login => Ok(()),
+        "login" if template.credentials => Ok(()),
         "totp" if template.totp => Ok(()),
         "login" | "totp" => Err("Item type is not enabled for this list.".to_string()),
         _ => Err("Unsupported item type.".to_string()),

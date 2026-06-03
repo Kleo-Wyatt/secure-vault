@@ -18,7 +18,10 @@ pub struct CreateVaultListArgs {
 #[serde(rename_all = "camelCase")]
 pub struct VaultListTemplateArgs {
     pub kind: VaultListKind,
-    pub login: bool,
+
+    #[serde(default, alias = "login")]
+    pub credentials: bool,
+
     pub totp: bool,
     pub notes: bool,
 }
@@ -37,7 +40,7 @@ pub struct VaultListResult {
 #[serde(rename_all = "camelCase")]
 pub struct VaultListTemplateResult {
     pub kind: VaultListKind,
-    pub login: bool,
+    pub credentials: bool,
     pub totp: bool,
     pub notes: bool,
 }
@@ -121,7 +124,7 @@ fn normalize_required_list_name(name: &str) -> Result<String, String> {
 fn vault_list_template(args: VaultListTemplateArgs) -> Result<VaultListTemplate, String> {
     let template = VaultListTemplate {
         kind: args.kind,
-        login: args.login,
+        credentials: args.credentials,
         totp: args.totp,
         notes: args.notes,
     };
@@ -137,7 +140,7 @@ fn vault_list_result(list: VaultFileList) -> VaultListResult {
         name: list.name,
         template: VaultListTemplateResult {
             kind: list.template.kind,
-            login: list.template.login,
+            credentials: list.template.credentials,
             totp: list.template.totp,
             notes: list.template.notes,
         },
