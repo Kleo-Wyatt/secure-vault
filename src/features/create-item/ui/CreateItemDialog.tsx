@@ -96,11 +96,11 @@ function getAvailableItemTypes(selectedVaultList?: VaultList) {
 
   if (template.kind === 'credentials') {
     return itemTypes.filter((itemType) => {
-      if (template.login && itemType.type === LEGACY_CREDENTIAL_ITEM_TYPE) {
+      if (template.credentials && itemType.type === LEGACY_CREDENTIAL_ITEM_TYPE) {
         return true;
       }
 
-      if (!template.login && template.totp && itemType.type === 'totp') {
+      if (!template.credentials && template.totp && itemType.type === 'totp') {
         return true;
       }
 
@@ -130,9 +130,9 @@ export function CreateItemDialog({
 
   const availableItemTypes = getAvailableItemTypes(selectedVaultList);
 
-  const includeTotpInLoginForm =
+  const includeTotpInCredentialForm  =
     selectedVaultList?.template.kind === 'credentials' &&
-    selectedVaultList.template.login &&
+    selectedVaultList.template.credentials &&
     selectedVaultList.template.totp;
 
   function handleSelectType(type: VaultItemType) {
@@ -149,7 +149,7 @@ export function CreateItemDialog({
     if (selectedType === 'login') {
       return (
         <CreateCredentialItemForm
-          includeTotp={includeTotpInLoginForm}
+          includeTotp={includeTotpInCredentialForm }
           onBack={() => setSelectedType(null)}
           onCreate={async (input) => {
             await onCreateCredential?.(input);

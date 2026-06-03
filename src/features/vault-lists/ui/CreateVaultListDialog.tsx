@@ -75,14 +75,14 @@ function getDefaultName(kind: VaultListKind) {
 
 function buildTemplate(
   kind: VaultListKind,
-  login: boolean,
+  credentials: boolean,
   totp: boolean,
 ): VaultListTemplate {
   switch (kind) {
     case 'credentials':
       return {
         kind,
-        login,
+        credentials,
         totp,
         notes: true,
       };
@@ -91,7 +91,7 @@ function buildTemplate(
     case 'bank_card':
       return {
         kind,
-        login: false,
+        credentials: false,
         totp: false,
         notes: true,
       };
@@ -99,7 +99,7 @@ function buildTemplate(
     case 'secure_note':
       return {
         kind,
-        login: false,
+        credentials: false,
         totp: false,
         notes: false,
       };
@@ -112,20 +112,20 @@ export function CreateVaultListDialog({
   const [isOpen, setIsOpen] = useState(false);
   const [name, setName] = useState('');
   const [kind, setKind] = useState<VaultListKind>('credentials');
-  const [login, setLogin] = useState(true);
+  const [credentials, setCredentials] = useState(true);
   const [totp, setTotp] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const isCredentialsList = kind === 'credentials';
-  const hasCredentialsField = !isCredentialsList || login || totp;
+  const hasCredentialsField = !isCredentialsList || credentials || totp;
   const canSubmit =
     name.trim().length > 0 && hasCredentialsField && !isSubmitting;
 
   function resetForm() {
     setName('');
     setKind('credentials');
-    setLogin(true);
+    setCredentials(true);
     setTotp(false);
     setErrorMessage(null);
     setIsSubmitting(false);
@@ -139,10 +139,10 @@ export function CreateVaultListDialog({
     }
 
     if (nextKind !== 'credentials') {
-      setLogin(false);
+      setCredentials(false);
       setTotp(false);
     } else {
-      setLogin(true);
+      setCredentials(true);
       setTotp(false);
     }
   }
@@ -160,7 +160,7 @@ export function CreateVaultListDialog({
     try {
       await onCreate({
         name: name.trim(),
-        template: buildTemplate(kind, login, totp),
+        template: buildTemplate(kind, credentials, totp),
       });
 
       resetForm();
@@ -256,13 +256,13 @@ export function CreateVaultListDialog({
                 <input
                   className="mt-1"
                   type="checkbox"
-                  checked={login}
-                  onChange={(event) => setLogin(event.target.checked)}
+                  checked={credentials}
+                  onChange={(event) => setCredentials(event.target.checked)}
                 />
                 <span>
-                  <span className="font-medium">Login credentials</span>
+                  <span className="font-medium">Credentials</span>
                   <span className="block text-xs text-muted-foreground">
-                    Title, username, password, website.
+                    Username, password, website, and encrypted notes.
                   </span>
                 </span>
               </label>

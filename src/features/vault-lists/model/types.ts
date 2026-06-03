@@ -6,7 +6,7 @@ export type VaultListKind =
 
 export type VaultListTemplate = {
   kind: VaultListKind;
-  login: boolean;
+  credentials: boolean;
   totp: boolean;
   notes: boolean;
 };
