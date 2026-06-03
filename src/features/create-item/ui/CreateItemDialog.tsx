@@ -3,10 +3,10 @@ import { KeyRound, LockKeyhole, NotebookText, ShieldCheck } from 'lucide-react';
 
 import type { VaultItemType } from '@/entities/item';
 import type {
-  CreateLoginItemInput,
+  CreateCredentialItemInput,
   CreateTotpItemInput,
 } from '@/features/create-item/model/types';
-import { CreateLoginItemForm } from '@/features/create-item/ui/CreateLoginItemForm';
+import { CreateCredentialItemForm } from '@/features/create-item/ui/CreateCredentialItemForm';
 import { CreateTotpItemForm } from '@/features/create-item/ui/CreateTotpItemForm';
 import type { VaultList } from '@/features/vault-lists';
 import { Button } from '@/shared/ui/button';
@@ -22,7 +22,9 @@ import {
 type CreateItemDialogProps = {
   selectedVaultList?: VaultList;
   onSelectType?: (type: VaultItemType) => void;
-  onCreateLogin?: (input: CreateLoginItemInput) => Promise<void> | void;
+  onCreateCredential?: (
+    input: CreateCredentialItemInput,
+  ) => Promise<void> | void;
   onCreateTotp?: (input: CreateTotpItemInput) => Promise<void> | void;
 };
 
@@ -117,7 +119,7 @@ function getAvailableItemTypes(selectedVaultList?: VaultList) {
 export function CreateItemDialog({
   selectedVaultList,
   onSelectType,
-  onCreateLogin,
+  onCreateCredential,
   onCreateTotp,
 }: CreateItemDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -143,11 +145,11 @@ export function CreateItemDialog({
   function renderContent() {
     if (selectedType === 'login') {
       return (
-        <CreateLoginItemForm
+        <CreateCredentialItemForm
           includeTotp={includeTotpInLoginForm}
           onBack={() => setSelectedType(null)}
           onCreate={async (input) => {
-            await onCreateLogin?.(input);
+            await onCreateCredential?.(input);
             handleClose();
           }}
         />

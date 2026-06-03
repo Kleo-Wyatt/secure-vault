@@ -1,14 +1,14 @@
 import type { VaultItemDetail } from '@/entities/item';
 import type {
-  CreateLoginItemInput,
+  CreateCredentialItemInput,
   CreateTotpItemInput,
 } from '@/features/create-item/model/types';
 import { callTauriCommand } from '@/shared/api/tauri';
 
-type CreateLoginItemArgs = {
+type CreateCredentialItemArgs = {
   itemType: 'login';
   listId?: string;
-  login: Omit<CreateLoginItemInput, 'listId'>;
+  login: Omit<CreateCredentialItemInput, 'listId'>;
 };
 
 type CreateTotpItemArgs = {
@@ -17,10 +17,10 @@ type CreateTotpItemArgs = {
   totp: Omit<CreateTotpItemInput, 'listId'>;
 };
 
-export function createLoginItem(input: CreateLoginItemInput) {
+export function createCredentialItem(input: CreateCredentialItemInput) {
   const { listId, ...login } = input;
 
-  return callTauriCommand<VaultItemDetail, { args: CreateLoginItemArgs }>(
+  return callTauriCommand<VaultItemDetail, { args: CreateCredentialItemArgs }>(
     'create_item',
     {
       args: {

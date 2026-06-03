@@ -6,8 +6,8 @@ import {
   type CredentialItemFormValues,
 } from '@/entities/item';
 import type {
-  CreateLoginItemInput,
-  CreateLoginItemTotpInput,
+  CreateCredentialItemInput,
+  CreateCredentialItemTotpInput,
 } from '@/features/create-item/model/types';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
@@ -15,14 +15,8 @@ import { Input } from '@/shared/ui/input';
 type CreateCredentialItemFormProps = {
   includeTotp?: boolean;
   onBack: () => void;
-  onCreate: (input: CreateLoginItemInput) => Promise<void> | void;
+  onCreate: (input: CreateCredentialItemInput) => Promise<void> | void;
 };
-
-function normalizeOptionalText(value: string) {
-  const normalizedValue = value.trim();
-
-  return normalizedValue || undefined;
-}
 
 function normalizeTotpSecret(value: string) {
   return value.replace(/\s/g, '').toUpperCase().replace(/=+$/g, '');
@@ -59,7 +53,7 @@ export function CreateCredentialItemForm({
 
   function getTotpInput(
     values: CredentialItemFormValues,
-  ): CreateLoginItemTotpInput | undefined {
+  ): CreateCredentialItemTotpInput | undefined {
     if (!includeTotp) {
       return undefined;
     }
@@ -107,14 +101,14 @@ export function CreateCredentialItemForm({
       <div className="flex flex-col gap-2">
         <label
           className="text-sm font-medium"
-          htmlFor="create-login-totp-secret"
+          htmlFor="create-credential-totp-secret"
         >
           TOTP secret
         </label>
 
         <div className="flex gap-2">
           <Input
-            id="create-login-totp-secret"
+            id="create-credential-totp-secret"
             type={isTotpSecretVisible ? 'text' : 'password'}
             value={totpSecret}
             onChange={(event) => setTotpSecret(event.target.value)}
@@ -123,7 +117,7 @@ export function CreateCredentialItemForm({
             aria-invalid={shouldShowTotpSecretError}
             aria-describedby={
               shouldShowTotpSecretError
-                ? 'create-login-totp-secret-error'
+                ? 'create-credential-totp-secret-error'
                 : undefined
             }
           />
@@ -147,7 +141,7 @@ export function CreateCredentialItemForm({
 
         {shouldShowTotpSecretError ? (
           <p
-            id="create-login-totp-secret-error"
+            id="create-credential-totp-secret-error"
             className="text-xs text-destructive"
           >
             {totpSecretError}
@@ -171,8 +165,8 @@ export function CreateCredentialItemForm({
       </div>
 
       <CredentialItemForm
-        idPrefix="create-login"
-        resetKey="create-login"
+        idPrefix="create-credential"
+        resetKey="create-credential"
         requirePassword
         canSubmitExtra={!totpSecretError}
         extraFieldsBeforeNotes={totpFields}

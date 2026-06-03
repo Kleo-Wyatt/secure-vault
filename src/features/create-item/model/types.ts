@@ -1,4 +1,4 @@
-export type CreateLoginItemTotpInput = {
+export type CreateCredentialItemTotpInput = {
   issuer?: string;
   account?: string;
   secret: string;
@@ -7,13 +7,13 @@ export type CreateLoginItemTotpInput = {
   period?: number;
 };
 
-export type CreateLoginItemInput = {
+export type CreateCredentialItemInput = {
   listId?: string;
   title: string;
   username?: string;
   password: string;
   website?: string;
-  totp?: CreateLoginItemTotpInput;
+  totp?: CreateCredentialItemTotpInput;
   notes?: string;
 };
 

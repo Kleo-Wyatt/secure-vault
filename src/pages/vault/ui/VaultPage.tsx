@@ -21,7 +21,7 @@ export function VaultPage({ onLock }: VaultPageProps) {
     handleSelectItem,
     handleSelectList,
     handleCreateVaultList,
-    handleCreateLogin,
+   handleCreateCredential,
     handleCreateTotp,
     handleItemUpdated,
     handleItemDeleted,
@@ -44,7 +44,7 @@ export function VaultPage({ onLock }: VaultPageProps) {
           selectedVaultList={selectedVaultList}
           selectedItemId={selectedItemId}
           onSelectItem={handleSelectItem}
-          onCreateLogin={handleCreateLogin}
+          onCreateCredential={handleCreateCredential}
           onCreateTotp={handleCreateTotp}
         />
       }

@@ -2,9 +2,9 @@ import { useEffect, useMemo, useState } from 'react';
 
 import { type VaultItemDetail, type VaultItemSummary } from '@/entities/item';
 import {
-  createLoginItem,
+  createCredentialItem,
   createTotpItem,
-  type CreateLoginItemInput,
+  type CreateCredentialItemInput,
   type CreateTotpItemInput,
 } from '@/features/create-item';
 import { listItems } from '@/features/list-items';
@@ -168,8 +168,8 @@ export function useVaultItems() {
     });
   }
 
-  async function handleCreateLogin(input: CreateLoginItemInput) {
-    const newItem = await createLoginItem({
+  async function handleCreateCredential(input: CreateCredentialItemInput) {
+    const newItem = await createCredentialItem({
       ...input,
       listId: getCreateListId(selectedListId),
     });
@@ -229,7 +229,7 @@ export function useVaultItems() {
     handleSelectItem: setSelectedItemId,
     handleSelectList,
     handleCreateVaultList,
-    handleCreateLogin,
+    handleCreateCredential,
     handleCreateTotp,
     handleItemUpdated,
     handleItemDeleted,

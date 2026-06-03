@@ -4,7 +4,7 @@ import { Search } from 'lucide-react';
 import type { VaultItemSummary } from '@/entities/item';
 import {
   CreateItemDialog,
-  type CreateLoginItemInput,
+  type CreateCredentialItemInput,
   type CreateTotpItemInput,
 } from '@/features/create-item';
 import type { VaultList } from '@/features/vault-lists';
@@ -17,7 +17,7 @@ type ItemListProps = {
   selectedVaultList?: VaultList;
   selectedItemId?: string;
   onSelectItem: (itemId: string) => void;
-  onCreateLogin: (input: CreateLoginItemInput) => void;
+  onCreateCredential: (input: CreateCredentialItemInput) => void;
   onCreateTotp: (input: CreateTotpItemInput) => void;
 };
 
@@ -64,7 +64,7 @@ export function ItemList({
   selectedVaultList,
   selectedItemId,
   onSelectItem,
-  onCreateLogin,
+  onCreateCredential,
   onCreateTotp,
 }: ItemListProps) {
   const [searchQuery, setSearchQuery] = useState('');
@@ -90,7 +90,7 @@ export function ItemList({
         {selectedVaultList ? (
           <CreateItemDialog
             selectedVaultList={selectedVaultList}
-            onCreateLogin={onCreateLogin}
+            onCreateCredential={onCreateCredential}
             onCreateTotp={onCreateTotp}
           />
         ) : null}
