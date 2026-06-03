@@ -39,7 +39,10 @@ function getItemTypeLabel(item: VaultItemSummary) {
 }
 
 function getItemDescription(item: VaultItemSummary) {
-  if (isCredentialItem(item) && item.description === 'Login') {
+  if (
+    isCredentialItem(item) &&
+    (item.description === 'Login' || item.description === 'Credential')
+  ) {
     return null;
   }
 
