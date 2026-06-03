@@ -32,15 +32,15 @@ pub async fn create_item(
 ) -> Result<VaultItemDetail, String> {
     let vault_key = require_unlocked_vault_key(&state)?;
     let repository = VaultItemRepository::new(&app);
-    let list_id = normalize_optional_list_id(args.list_id)?;
+    let list_id = normalize_required_list_id(args.list_id)?;
 
-    validate_create_item_list(&app, list_id.as_deref(), &args.item_type)?;
+    validate_create_item_list(&app, &list_id, &args.item_type)?;
 
     let (item, file_item) = match args.item_type.as_str() {
         item_type if item_type == LEGACY_CREDENTIAL_ITEM_TYPE => {
-            create_credential_item(args.credential, list_id, &vault_key)?
+            create_credential_item(args.credential, Some(list_id), &vault_key)?
         }
-        "totp" => create_totp_item(args.totp, list_id, &vault_key)?,
+        "totp" => create_totp_item(args.totp, Some(list_id), &vault_key)?,
         _ => {
             return Err("Unsupported item type.".to_string());
         }
@@ -192,29 +192,25 @@ pub async fn delete_item(
     Ok(())
 }
 
-fn normalize_optional_list_id(list_id: Option<String>) -> Result<Option<String>, String> {
+fn normalize_required_list_id(list_id: Option<String>) -> Result<String, String> {
     let Some(list_id) = list_id else {
-        return Ok(None);
+        return Err("List id is required.".to_string());
     };
 
     let list_id = list_id.trim().to_string();
 
     if list_id.is_empty() {
-        return Err("Invalid list id.".to_string());
+        return Err("List id is required.".to_string());
     }
 
-    Ok(Some(list_id))
+    Ok(list_id)
 }
 
 fn validate_create_item_list(
     app: &tauri::AppHandle,
-    list_id: Option<&str>,
+    list_id: &str,
     item_type: &str,
 ) -> Result<(), String> {
-    let Some(list_id) = list_id else {
-        return Ok(());
-    };
-
     let vault_file = load_vault_file(app)?;
 
     let Some(list) = vault_file.lists.iter().find(|list| list.id == list_id) else {
