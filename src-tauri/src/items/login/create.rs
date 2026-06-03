@@ -3,7 +3,7 @@ use uuid::Uuid;
 
 use crate::crypto::vault_key::VaultKey;
 use crate::items::login::mapping::{
-    encrypt_login_payload, login_description, login_detail, LOGIN_ITEM_TYPE,
+    credential_description, credential_detail, encrypt_credential_payload, LOGIN_ITEM_TYPE,
 };
 use crate::items::login::normalize::{
     normalize_optional_credential_totp, normalize_optional_text, normalize_optional_website,
@@ -34,10 +34,10 @@ pub fn create_login_item(
     let website = normalize_optional_website(credential.website)?;
     let totp = normalize_optional_credential_totp(credential.totp)?;
     let notes = normalize_optional_text(credential.notes);
-    let description = login_description(&website);
+    let description = credential_description(&website);
     let has_totp = totp.is_some();
 
-    let encrypted_payload = encrypt_login_payload(
+    let encrypted_payload = encrypt_credential_payload(
         &item_id,
         &item_type,
         &title,
@@ -62,7 +62,7 @@ pub fn create_login_item(
         encrypted_payload,
     };
 
-    let item = login_detail(
+    let item = credential_detail(
         item_id,
         list_id,
         title,

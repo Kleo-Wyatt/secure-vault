@@ -6,10 +6,10 @@ use crate::vault::format::VAULT_VERSION;
 
 pub const LOGIN_ITEM_TYPE: &str = "login";
 
-const DEFAULT_LOGIN_DESCRIPTION: &str = "Login";
+const DEFAULT_CREDENTIAL_DESCRIPTION: &str = "Credential";
 const MASKED_PASSWORD: &str = "••••••••••••••••";
 
-pub fn encrypt_login_payload(
+pub fn encrypt_credential_payload(
     item_id: &str,
     item_type: &str,
     title: &str,
@@ -37,7 +37,7 @@ pub fn encrypt_login_payload(
     encrypt_item_payload(&plaintext, vault_key, &aad)
 }
 
-pub fn login_detail(
+pub fn credential_detail(
     id: String,
     list_id: Option<String>,
     title: String,
@@ -69,15 +69,15 @@ pub fn login_detail(
     }
 }
 
-pub fn login_detail_from_payload(
+pub fn credential_detail_from_payload(
     id: String,
     list_id: Option<String>,
     payload: LoginItemEncryptedPayload,
 ) -> VaultItemDetail {
-    let description = login_description(&payload.website);
+    let description = credential_description(&payload.website);
     let has_totp = payload.totp.is_some();
 
-    login_detail(
+    credential_detail(
         id,
         list_id,
         payload.title,
@@ -89,8 +89,8 @@ pub fn login_detail_from_payload(
     )
 }
 
-pub fn login_description(website: &Option<String>) -> String {
+pub fn credential_description(website: &Option<String>) -> String {
     website
         .clone()
-        .unwrap_or_else(|| DEFAULT_LOGIN_DESCRIPTION.to_string())
+        .unwrap_or_else(|| DEFAULT_CREDENTIAL_DESCRIPTION.to_string())
 }

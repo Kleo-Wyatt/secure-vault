@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::crypto::item_payload::{build_item_aad, decrypt_item_payload};
 use crate::crypto::vault_key::VaultKey;
-use crate::items::login::mapping::login_detail_from_payload;
+use crate::items::login::mapping::credential_detail_from_payload;
 use crate::items::model::VaultItemDetail;
 use crate::items::totp::mapping::totp_detail_from_payload;
 use crate::vault::format::{VaultFileItem, VAULT_VERSION};
@@ -103,7 +103,7 @@ fn decrypt_login_item(
 ) -> Result<VaultItemDetail, String> {
     let payload = decrypt_login_payload(file_item, vault_key)?;
 
-    Ok(login_detail_from_payload(
+    Ok(credential_detail_from_payload(
         file_item.id.clone(),
         file_item.list_id.clone(),
         payload,

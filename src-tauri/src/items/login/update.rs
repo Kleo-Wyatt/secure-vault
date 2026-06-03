@@ -2,7 +2,7 @@ use chrono::Utc;
 
 use crate::crypto::vault_key::VaultKey;
 use crate::items::login::mapping::{
-    encrypt_login_payload, login_description, login_detail, LOGIN_ITEM_TYPE,
+    credential_description, credential_detail, encrypt_credential_payload, LOGIN_ITEM_TYPE,
 };
 use crate::items::login::normalize::{
     normalize_optional_text, normalize_optional_website, normalize_required_title,
@@ -35,7 +35,7 @@ pub fn update_login_item(
     let username = normalize_optional_text(credential.username);
     let website = normalize_optional_website(credential.website)?;
     let notes = normalize_optional_text(credential.notes);
-    let description = login_description(&website);
+    let description = credential_description(&website);
     let totp = existing_payload.totp;
     let has_totp = totp.is_some();
 
@@ -47,7 +47,7 @@ pub fn update_login_item(
     let item_type = existing_file_item.item_type;
     let now = Utc::now().to_rfc3339();
 
-    let encrypted_payload = encrypt_login_payload(
+    let encrypted_payload = encrypt_credential_payload(
         item_id,
         &item_type,
         &title,
@@ -74,7 +74,7 @@ pub fn update_login_item(
 
     repository.replace_file_item(item_id, file_item)?;
 
-    Ok(login_detail(
+    Ok(credential_detail(
         item_id.to_string(),
         existing_file_item.list_id,
         title,
