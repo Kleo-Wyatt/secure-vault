@@ -8,7 +8,7 @@ import { callTauriCommand } from '@/shared/api/tauri';
 type CreateCredentialItemArgs = {
   itemType: 'login';
   listId?: string;
-  login: Omit<CreateCredentialItemInput, 'listId'>;
+  credential: Omit<CreateCredentialItemInput, 'listId'>;
 };
 
 type CreateTotpItemArgs = {
@@ -18,7 +18,7 @@ type CreateTotpItemArgs = {
 };
 
 export function createCredentialItem(input: CreateCredentialItemInput) {
-  const { listId, ...login } = input;
+  const { listId, ...credential } = input;
 
   return callTauriCommand<VaultItemDetail, { args: CreateCredentialItemArgs }>(
     'create_item',
@@ -26,7 +26,7 @@ export function createCredentialItem(input: CreateCredentialItemInput) {
       args: {
         itemType: 'login',
         listId,
-        login,
+        credential,
       },
     },
   );

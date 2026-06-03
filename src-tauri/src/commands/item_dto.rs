@@ -9,7 +9,10 @@ use crate::items::model::{
 pub struct CreateItemArgs {
     pub item_type: String,
     pub list_id: Option<String>,
-    pub login: Option<CreateCredentialItemPayload>,
+
+    #[serde(default, alias = "login")]
+    pub credential: Option<CreateCredentialItemPayload>,
+
     pub totp: Option<CreateTotpItemPayload>,
 }
 
@@ -18,7 +21,9 @@ pub struct CreateItemArgs {
 pub struct UpdateItemArgs {
     pub id: String,
     pub item_type: String,
-    pub login: Option<UpdateCredentialItemPayload>,
+
+    #[serde(default, alias = "login")]
+    pub credential: Option<UpdateCredentialItemPayload>,
 }
 
 #[derive(Debug, Deserialize)]

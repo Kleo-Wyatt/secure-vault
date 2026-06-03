@@ -5,7 +5,7 @@ import { callTauriCommand } from '@/shared/api/tauri';
 type UpdateCredentialItemArgs = {
   id: string;
   itemType: 'login';
-  login: UpdateCredentialItemInput;
+  credential: UpdateCredentialItemInput;
 };
 
 export function updateCredentialItem(
@@ -18,7 +18,7 @@ export function updateCredentialItem(
       args: {
         id,
         itemType: 'login',
-        login: input,
+        credential: input,
       },
     },
   );
