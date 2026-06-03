@@ -1,4 +1,4 @@
-export type UpdateLoginItemInput = {
+export type UpdateCredentialItemInput = {
   title: string;
   username?: string;
   password?: string;

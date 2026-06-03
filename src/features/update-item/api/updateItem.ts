@@ -1,15 +1,18 @@
 import type { VaultItemDetail } from '@/entities/item';
-import type { UpdateLoginItemInput } from '@/features/update-item/model/types';
+import type { UpdateCredentialItemInput } from '@/features/update-item/model/types';
 import { callTauriCommand } from '@/shared/api/tauri';
 
-type UpdateLoginItemArgs = {
+type UpdateCredentialItemArgs = {
   id: string;
   itemType: 'login';
-  login: UpdateLoginItemInput;
+  login: UpdateCredentialItemInput;
 };
 
-export function updateLoginItem(id: string, input: UpdateLoginItemInput) {
-  return callTauriCommand<VaultItemDetail, { args: UpdateLoginItemArgs }>(
+export function updateCredentialItem(
+  id: string,
+  input: UpdateCredentialItemInput,
+) {
+  return callTauriCommand<VaultItemDetail, { args: UpdateCredentialItemArgs }>(
     'update_item',
     {
       args: {

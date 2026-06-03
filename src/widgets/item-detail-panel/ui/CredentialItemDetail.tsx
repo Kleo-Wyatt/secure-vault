@@ -1,5 +1,5 @@
 import type { VaultItemDetail } from '@/entities/item';
-import { EditLoginItemDialog } from '@/features/update-item';
+import { EditCredentialItemDialog } from '@/features/update-item';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 
 import { useTotpItemDetail } from '../model/useTotpItemDetail';
@@ -59,7 +59,7 @@ export function CredentialItemDetail({
       <Card className="max-w-2xl">
         <CardHeader className="flex flex-row items-start justify-between gap-4">
           <CardTitle>{item.title}</CardTitle>
-          <EditLoginItemDialog item={item} onUpdated={onItemUpdated} />
+          <EditCredentialItemDialog item={item} onUpdated={onItemUpdated} />
         </CardHeader>
 
         <CardContent className="space-y-6">
