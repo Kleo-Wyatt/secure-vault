@@ -6,7 +6,7 @@ use crate::items::login::mapping::{
     encrypt_login_payload, login_description, login_detail, LOGIN_ITEM_TYPE,
 };
 use crate::items::login::normalize::{
-    normalize_optional_login_totp, normalize_optional_text, normalize_optional_website,
+    normalize_optional_credential_totp, normalize_optional_text, normalize_optional_website,
     normalize_required_title,
 };
 use crate::items::model::{CreateCredentialItemPayload, VaultItemDetail};
@@ -32,7 +32,7 @@ pub fn create_login_item(
     let title = normalize_required_title(&credential.title)?;
     let username = normalize_optional_text(credential.username);
     let website = normalize_optional_website(credential.website)?;
-    let totp = normalize_optional_login_totp(credential.totp)?;
+    let totp = normalize_optional_credential_totp(credential.totp)?;
     let notes = normalize_optional_text(credential.notes);
     let description = login_description(&website);
     let has_totp = totp.is_some();

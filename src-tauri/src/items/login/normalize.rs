@@ -27,7 +27,7 @@ pub fn normalize_optional_website(value: Option<String>) -> Result<Option<String
     Ok(Some(website))
 }
 
-pub fn normalize_optional_login_totp(
+pub fn normalize_optional_credential_totp(
     value: Option<CreateCredentialItemTotpPayload>,
 ) -> Result<Option<LoginItemTotpEncryptedPayload>, String> {
     let Some(value) = value else {
