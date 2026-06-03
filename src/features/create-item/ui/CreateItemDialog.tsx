@@ -7,9 +7,11 @@ import {
 } from '@/entities/item';
 import type {
   CreateCredentialItemInput,
+  CreateSecureNoteItemInput,
   CreateTotpItemInput,
 } from '@/features/create-item/model/types';
 import { CreateCredentialItemForm } from '@/features/create-item/ui/CreateCredentialItemForm';
+import { CreateSecureNoteItemForm } from '@/features/create-item/ui/CreateSecureNoteItemForm';
 import { CreateTotpItemForm } from '@/features/create-item/ui/CreateTotpItemForm';
 import type { VaultList } from '@/features/vault-lists';
 import { Button } from '@/shared/ui/button';
@@ -29,6 +31,9 @@ type CreateItemDialogProps = {
     input: CreateCredentialItemInput,
   ) => Promise<void> | void;
   onCreateTotp?: (input: CreateTotpItemInput) => Promise<void> | void;
+  onCreateSecureNote?: (
+    input: CreateSecureNoteItemInput,
+  ) => Promise<void> | void;
 };
 
 const itemTypes: Array<{
@@ -58,7 +63,7 @@ const itemTypes: Array<{
   {
     type: 'secure_note',
     title: 'Secure note',
-    description: 'Store encrypted notes and recovery instructions.',
+    description: 'Store an encrypted private note.',
     icon: NotebookText,
   },
 ];
@@ -70,6 +75,10 @@ function getDialogTitle(selectedType: VaultItemType | null) {
 
   if (selectedType === 'totp') {
     return 'Create TOTP';
+  }
+
+  if (selectedType === 'secure_note') {
+    return 'Create secure note';
   }
 
   return 'Create new item';
@@ -84,6 +93,10 @@ function getDialogDescription(selectedType: VaultItemType | null) {
     return 'Add a standalone two-factor authentication secret.';
   }
 
+  if (selectedType === 'secure_note') {
+    return 'Add a standalone encrypted note.';
+  }
+
   return 'Choose what kind of encrypted item you want to store.';
 }
 
@@ -96,7 +109,10 @@ function getAvailableItemTypes(selectedVaultList?: VaultList) {
 
   if (template.kind === 'credentials') {
     return itemTypes.filter((itemType) => {
-      if (template.credentials && itemType.type === LEGACY_CREDENTIAL_ITEM_TYPE) {
+      if (
+        template.credentials &&
+        itemType.type === LEGACY_CREDENTIAL_ITEM_TYPE
+      ) {
         return true;
       }
 
@@ -124,13 +140,14 @@ export function CreateItemDialog({
   onSelectType,
   onCreateCredential,
   onCreateTotp,
+  onCreateSecureNote,
 }: CreateItemDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedType, setSelectedType] = useState<VaultItemType | null>(null);
 
   const availableItemTypes = getAvailableItemTypes(selectedVaultList);
 
-  const includeTotpInCredentialForm  =
+  const includeTotpInCredentialForm =
     selectedVaultList?.template.kind === 'credentials' &&
     selectedVaultList.template.credentials &&
     selectedVaultList.template.totp;
@@ -149,7 +166,7 @@ export function CreateItemDialog({
     if (selectedType === LEGACY_CREDENTIAL_ITEM_TYPE) {
       return (
         <CreateCredentialItemForm
-          includeTotp={includeTotpInCredentialForm }
+          includeTotp={includeTotpInCredentialForm}
           onBack={() => setSelectedType(null)}
           onCreate={async (input) => {
             await onCreateCredential?.(input);
@@ -165,6 +182,18 @@ export function CreateItemDialog({
           onBack={() => setSelectedType(null)}
           onCreate={async (input) => {
             await onCreateTotp?.(input);
+            handleClose();
+          }}
+        />
+      );
+    }
+
+    if (selectedType === 'secure_note') {
+      return (
+        <CreateSecureNoteItemForm
+          onBack={() => setSelectedType(null)}
+          onCreate={async (input) => {
+            await onCreateSecureNote?.(input);
             handleClose();
           }}
         />
