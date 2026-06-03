@@ -1,5 +1,5 @@
 use crate::items::model::CreateCredentialItemTotpPayload;
-use crate::items::payloads::LoginItemTotpEncryptedPayload;
+use crate::items::payloads::CredentialItemTotpEncryptedPayload;
 
 pub fn normalize_required_title(title: &str) -> Result<String, String> {
     let title = title.trim().to_string();
@@ -29,12 +29,12 @@ pub fn normalize_optional_website(value: Option<String>) -> Result<Option<String
 
 pub fn normalize_optional_credential_totp(
     value: Option<CreateCredentialItemTotpPayload>,
-) -> Result<Option<LoginItemTotpEncryptedPayload>, String> {
+) -> Result<Option<CredentialItemTotpEncryptedPayload>, String> {
     let Some(value) = value else {
         return Ok(None);
     };
 
-    Ok(Some(LoginItemTotpEncryptedPayload {
+    Ok(Some(CredentialItemTotpEncryptedPayload {
         issuer: normalize_optional_text(value.issuer),
         account: normalize_optional_text(value.account),
         secret: normalize_totp_secret(value.secret)?,

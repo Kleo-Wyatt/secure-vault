@@ -1,7 +1,7 @@
 use crate::crypto::item_payload::{build_item_aad, encrypt_item_payload, EncryptedPayload};
 use crate::crypto::vault_key::VaultKey;
 use crate::items::model::{VaultItemDetail, VaultItemType};
-use crate::items::payloads::{LoginItemEncryptedPayload, LoginItemTotpEncryptedPayload};
+use crate::items::payloads::{CredentialItemEncryptedPayload, CredentialItemTotpEncryptedPayload};
 use crate::vault::format::VAULT_VERSION;
 
 pub const LOGIN_ITEM_TYPE: &str = "login";
@@ -16,11 +16,11 @@ pub fn encrypt_credential_payload(
     username: Option<String>,
     password: String,
     website: Option<String>,
-    totp: Option<LoginItemTotpEncryptedPayload>,
+    totp: Option<CredentialItemTotpEncryptedPayload>,
     notes: Option<String>,
     vault_key: &VaultKey,
 ) -> Result<EncryptedPayload, String> {
-    let payload = LoginItemEncryptedPayload {
+    let payload = CredentialItemEncryptedPayload {
         title: title.to_string(),
         username,
         password,
@@ -72,7 +72,7 @@ pub fn credential_detail(
 pub fn credential_detail_from_payload(
     id: String,
     list_id: Option<String>,
-    payload: LoginItemEncryptedPayload,
+    payload: CredentialItemEncryptedPayload,
 ) -> VaultItemDetail {
     let description = credential_description(&payload.website);
     let has_totp = payload.totp.is_some();

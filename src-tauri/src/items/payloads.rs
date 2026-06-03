@@ -9,21 +9,21 @@ use crate::vault::format::{VaultFileItem, VAULT_VERSION};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct LoginItemEncryptedPayload {
+pub struct CredentialItemEncryptedPayload {
     pub title: String,
     pub username: Option<String>,
     pub password: String,
     pub website: Option<String>,
 
     #[serde(default)]
-    pub totp: Option<LoginItemTotpEncryptedPayload>,
+    pub totp: Option<CredentialItemTotpEncryptedPayload>,
 
     pub notes: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct LoginItemTotpEncryptedPayload {
+pub struct CredentialItemTotpEncryptedPayload {
     pub issuer: Option<String>,
     pub account: Option<String>,
     pub secret: String,
@@ -58,7 +58,7 @@ pub fn decrypt_file_items(
 pub fn decrypt_login_payload(
     file_item: &VaultFileItem,
     vault_key: &VaultKey,
-) -> Result<LoginItemEncryptedPayload, String> {
+) -> Result<CredentialItemEncryptedPayload, String> {
     if file_item.item_type != "login" {
         return Err("Unsupported item type.".to_string());
     }
