@@ -1,4 +1,4 @@
-import type { VaultItemDetail } from '@/entities/item';
+import { isCredentialItem, type VaultItemDetail } from '@/entities/item';
 
 import { useCredentialItemDetail } from '../model/useCredentialItemDetail';
 import { CredentialItemDetail } from './CredentialItemDetail';
@@ -18,7 +18,7 @@ export function ItemDetailPanel({
   onItemDeleted,
   onItemUpdated,
 }: ItemDetailPanelProps) {
-  const credentialItemId = item?.type === 'login' ? item.id : undefined;
+  const credentialItemId = isCredentialItem(item) ? item.id : undefined;
 
   const credentialItemDetail = useCredentialItemDetail({
     itemId: credentialItemId,
@@ -29,7 +29,7 @@ export function ItemDetailPanel({
     return <EmptyItemDetail />;
   }
 
-  if (item.type === 'login') {
+  if (isCredentialItem(item)) {
     return (
       <CredentialItemDetail
         item={item}

@@ -1,6 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 
-import { type VaultItemDetail, type VaultItemSummary } from '@/entities/item';
+import {
+  isCredentialItem,
+  type VaultItemDetail,
+  type VaultItemSummary,
+} from '@/entities/item';
 import {
   createCredentialItem,
   createTotpItem,
@@ -24,7 +28,7 @@ function toItemSummary(item: VaultItemDetail): VaultItemSummary {
     title: item.title,
     type: item.type,
     description: item.description,
-    hasTotp: item.type === 'login' ? item.hasTotp : undefined,
+    hasTotp: isCredentialItem(item) ? item.hasTotp : undefined,
     isHighSecurity: item.isHighSecurity,
   };
 }

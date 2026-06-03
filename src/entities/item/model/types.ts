@@ -1,5 +1,7 @@
 export type VaultItemType = 'login' | 'totp' | 'seed_phrase' | 'secure_note';
 
+export const LEGACY_CREDENTIAL_ITEM_TYPE = 'login';
+
 export type VaultItemSummary = {
   id: string;
   listId?: string;
@@ -49,3 +51,9 @@ export type VaultItemDetail =
   | TotpItemDetail
   | SeedPhraseItemDetail
   | SecureNoteItemDetail;
+
+export function isCredentialItem(
+  item?: VaultItemDetail | VaultItemSummary,
+): item is CredentialItemDetail {
+  return item?.type === LEGACY_CREDENTIAL_ITEM_TYPE;
+}

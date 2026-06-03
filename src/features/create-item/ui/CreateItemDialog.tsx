@@ -1,7 +1,10 @@
 import { useState, type ComponentType } from 'react';
 import { KeyRound, LockKeyhole, NotebookText, ShieldCheck } from 'lucide-react';
 
-import type { VaultItemType } from '@/entities/item';
+import {
+  LEGACY_CREDENTIAL_ITEM_TYPE,
+  type VaultItemType,
+} from '@/entities/item';
 import type {
   CreateCredentialItemInput,
   CreateTotpItemInput,
@@ -93,7 +96,7 @@ function getAvailableItemTypes(selectedVaultList?: VaultList) {
 
   if (template.kind === 'credentials') {
     return itemTypes.filter((itemType) => {
-      if (template.login && itemType.type === 'login') {
+      if (template.login && itemType.type === LEGACY_CREDENTIAL_ITEM_TYPE) {
         return true;
       }
 

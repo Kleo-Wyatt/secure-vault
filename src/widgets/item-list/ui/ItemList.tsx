@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Search } from 'lucide-react';
 
-import type { VaultItemSummary } from '@/entities/item';
+import { isCredentialItem, type VaultItemSummary } from '@/entities/item';
 import {
   CreateItemDialog,
   type CreateCredentialItemInput,
@@ -22,20 +22,24 @@ type ItemListProps = {
 };
 
 function getItemTypeLabel(item: VaultItemSummary) {
+  if (isCredentialItem(item)) {
+    return item.hasTotp ? 'Credential · 2FA' : 'Credential';
+  }
+
   switch (item.type) {
-    case 'login':
-      return item.hasTotp ? 'Credential · 2FA' : 'Credential';
     case 'totp':
       return 'TOTP';
     case 'seed_phrase':
       return 'Seed phrase';
     case 'secure_note':
       return 'Secure note';
+    default:
+      return 'Item';
   }
 }
 
 function getItemDescription(item: VaultItemSummary) {
-  if (item.type === 'login' && item.description === 'Login') {
+  if (isCredentialItem(item) && item.description === 'Login') {
     return null;
   }
 
