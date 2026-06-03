@@ -12,7 +12,7 @@ use crate::items::login::normalize::{
 use crate::items::model::{CreateCredentialItemPayload, VaultItemDetail};
 use crate::vault::format::{VaultFileItem, VaultItemMetadata};
 
-pub fn create_login_item(
+pub fn create_credential_item(
     payload: Option<CreateCredentialItemPayload>,
     list_id: Option<String>,
     vault_key: &VaultKey,

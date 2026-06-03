@@ -12,7 +12,7 @@ use crate::items::payloads::decrypt_credential_payload;
 use crate::items::repository::VaultItemRepository;
 use crate::vault::format::{VaultFileItem, VaultItemMetadata};
 
-pub fn update_login_item(
+pub fn update_credential_item(
     repository: &VaultItemRepository<'_>,
     item_id: &str,
     payload: Option<UpdateCredentialItemPayload>,

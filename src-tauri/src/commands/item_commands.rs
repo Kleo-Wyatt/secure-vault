@@ -11,7 +11,7 @@ use crate::commands::item_runtime::{
     replace_runtime_item, require_unlocked_vault_key, validate_password_secret_type,
 };
 use crate::items::login::{
-    create_login_item, delete_login_file_item, read_login_password, update_login_item,
+    create_credential_item, delete_login_file_item, read_login_password, update_credential_item,
 };
 use crate::items::model::VaultItemDetail;
 use crate::items::repository::VaultItemRepository;
@@ -35,7 +35,7 @@ pub async fn create_item(
     validate_create_item_list(&app, list_id.as_deref(), &args.item_type)?;
 
     let (item, file_item) = match args.item_type.as_str() {
-        "login" => create_login_item(args.login, list_id, &vault_key)?,
+        "login" => create_credential_item(args.login, list_id, &vault_key)?,
         "totp" => create_totp_item(args.totp, list_id, &vault_key)?,
         _ => {
             return Err("Unsupported item type.".to_string());
@@ -59,7 +59,7 @@ pub async fn update_item(
     let repository = VaultItemRepository::new(&app);
 
     let item = match args.item_type.as_str() {
-        "login" => update_login_item(&repository, &item_id, args.login, &vault_key)?,
+        "login" => update_credential_item(&repository, &item_id, args.login, &vault_key)?,
         _ => {
             return Err("Unsupported item type.".to_string());
         }
