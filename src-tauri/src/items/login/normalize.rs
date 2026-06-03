@@ -22,7 +22,7 @@ pub fn normalize_optional_website(value: Option<String>) -> Result<Option<String
         return Ok(None);
     };
 
-    validate_login_website(&website)?;
+    validate_credential_website(&website)?;
 
     Ok(Some(website))
 }
@@ -102,7 +102,7 @@ fn normalize_totp_period(value: Option<u32>) -> Result<u32, String> {
     Ok(period)
 }
 
-fn validate_login_website(value: &str) -> Result<(), String> {
+fn validate_credential_website(value: &str) -> Result<(), String> {
     if value.chars().any(char::is_whitespace) {
         return Err("Enter a valid website URL.".to_string());
     }

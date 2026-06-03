@@ -44,7 +44,7 @@ pub fn generate_totp_code(
                 .map_err(|_| "Could not generate TOTP code.".to_string())?;
 
             let Some(totp) = payload.totp else {
-                return Err("Login item does not have a TOTP secret.".to_string());
+                return Err("Credential does not have a TOTP secret.".to_string());
             };
 
             generate_code_result(&totp.secret, &totp.algorithm, totp.digits, totp.period)

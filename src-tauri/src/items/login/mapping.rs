@@ -50,7 +50,7 @@ pub fn credential_detail(
     VaultItemDetail {
         id,
         list_id,
-        item_type: VaultItemType::Login,
+        item_type: VaultItemType::Credential,
         title,
         description,
         username,
