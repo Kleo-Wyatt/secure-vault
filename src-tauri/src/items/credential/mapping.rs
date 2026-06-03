@@ -65,6 +65,7 @@ pub fn credential_detail(
         expires_in: None,
         has_totp: Some(has_totp),
         notes,
+        body_preview: None,
         is_high_security: None,
     }
 }
