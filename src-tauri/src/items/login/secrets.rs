@@ -3,7 +3,7 @@ use crate::items::login::mapping::LOGIN_ITEM_TYPE;
 use crate::items::payloads::decrypt_credential_payload;
 use crate::items::repository::VaultItemRepository;
 
-pub fn read_login_password(
+pub fn read_credential_password(
     repository: &VaultItemRepository<'_>,
     item_id: &str,
     vault_key: &VaultKey,
@@ -17,7 +17,7 @@ pub fn read_login_password(
     Ok(payload.password)
 }
 
-pub fn delete_login_file_item(
+pub fn delete_credential_file_item(
     repository: &VaultItemRepository<'_>,
     item_id: &str,
 ) -> Result<(), String> {

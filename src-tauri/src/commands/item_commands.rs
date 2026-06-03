@@ -11,7 +11,8 @@ use crate::commands::item_runtime::{
     replace_runtime_item, require_unlocked_vault_key, validate_password_secret_type,
 };
 use crate::items::login::{
-    create_credential_item, delete_login_file_item, read_login_password, update_credential_item,
+    create_credential_item, delete_credential_file_item, read_credential_password,
+    update_credential_item,
 };
 use crate::items::model::VaultItemDetail;
 use crate::items::repository::VaultItemRepository;
@@ -87,7 +88,7 @@ pub async fn reveal_secret(
     let vault_key = require_unlocked_vault_key(&state)?;
     let repository = VaultItemRepository::new(&app);
 
-    let password = read_login_password(
+    let password = read_credential_password(
         &repository,
         &item_id,
         &vault_key,
@@ -110,7 +111,7 @@ pub async fn copy_secret(
     let repository = VaultItemRepository::new(&app);
 
     let password =
-        read_login_password(&repository, &item_id, &vault_key, "Could not copy secret.")?;
+        read_credential_password(&repository, &item_id, &vault_key, "Could not copy secret.")?;
 
     copy_secret_text(&password)?;
     schedule_clipboard_clear(app);
@@ -172,7 +173,7 @@ pub async fn delete_item(
     let file_item = repository.find_file_item(&item_id)?;
 
     match file_item.item_type.as_str() {
-        "login" => delete_login_file_item(&repository, &item_id)?,
+        "login" => delete_credential_file_item(&repository, &item_id)?,
         "totp" => delete_totp_file_item(&repository, &item_id)?,
         _ => {
             return Err("Unsupported item type.".to_string());

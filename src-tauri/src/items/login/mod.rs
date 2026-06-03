@@ -5,5 +5,5 @@ mod secrets;
 mod update;
 
 pub use create::create_credential_item;
-pub use secrets::{delete_login_file_item, read_login_password};
+pub use secrets::{delete_credential_file_item, read_credential_password};
 pub use update::update_credential_item;
