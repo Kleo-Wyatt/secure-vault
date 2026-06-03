@@ -1,6 +1,10 @@
-export type VaultItemType = 'login' | 'totp' | 'seed_phrase' | 'secure_note';
+export const LEGACY_CREDENTIAL_ITEM_TYPE = 'login' as const;
 
-export const LEGACY_CREDENTIAL_ITEM_TYPE = 'login';
+export type VaultItemType =
+  | typeof LEGACY_CREDENTIAL_ITEM_TYPE
+  | 'totp'
+  | 'seed_phrase'
+  | 'secure_note';
 
 export type VaultItemSummary = {
   id: string;
@@ -13,7 +17,7 @@ export type VaultItemSummary = {
 };
 
 export type CredentialItemDetail = VaultItemSummary & {
-  type: 'login';
+  type: typeof LEGACY_CREDENTIAL_ITEM_TYPE;
   username?: string;
   website?: string;
   passwordMasked: string;
