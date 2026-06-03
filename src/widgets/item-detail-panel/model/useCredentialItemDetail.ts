@@ -10,17 +10,17 @@ type ClipboardClearedPayload = {
   reason: 'timeout';
 };
 
-type UseLoginItemDetailArgs = {
+type UseCredentialItemDetailArgs = {
   itemId?: string;
   onItemDeleted?: (id: string) => void | Promise<void>;
 };
 
 const REVEAL_TIMEOUT_MS = 20_000;
 
-export function useLoginItemDetail({
+export function useCredentialItemDetail({
   itemId,
   onItemDeleted,
-}: UseLoginItemDetailArgs) {
+}: UseCredentialItemDetailArgs) {
   const [revealedPassword, setRevealedPassword] = useState<string | null>(null);
   const [isRevealingPassword, setIsRevealingPassword] = useState(false);
   const [revealError, setRevealError] = useState<string | null>(null);
@@ -28,13 +28,6 @@ export function useLoginItemDetail({
   const [copyMessage, setCopyMessage] = useState<string | null>(null);
   const [isDeletingItem, setIsDeletingItem] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
-
-  function clearTransientState() {
-    setRevealedPassword(null);
-    setRevealError(null);
-    setCopyMessage(null);
-    setDeleteError(null);
-  }
 
   useEffect(() => {
     setRevealedPassword(null);
@@ -135,7 +128,7 @@ export function useLoginItemDetail({
     }
   }
 
-  async function handleDeleteLoginItem(targetItemId: string) {
+  async function handleDeleteCredentialItem(targetItemId: string) {
     if (isDeletingItem) {
       return;
     }
@@ -151,10 +144,17 @@ export function useLoginItemDetail({
       setRevealedPassword(null);
       await onItemDeleted?.(targetItemId);
     } catch {
-      setDeleteError('Could not delete item.');
+      setDeleteError('Could not delete credential.');
     } finally {
       setIsDeletingItem(false);
     }
+  }
+
+  function clearTransientState() {
+    setRevealedPassword(null);
+    setRevealError(null);
+    setCopyMessage(null);
+    setDeleteError(null);
   }
 
   return {
@@ -167,8 +167,8 @@ export function useLoginItemDetail({
     deleteError,
     handleRevealPassword,
     handleCopyPassword,
-    handleDeleteLoginItem,
-    hidePassword: () => setRevealedPassword(null),
+    handleDeleteCredentialItem,
     clearTransientState,
+    hidePassword: () => setRevealedPassword(null),
   };
 }

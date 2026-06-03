@@ -3,15 +3,15 @@ import { EditLoginItemDialog } from '@/features/update-item';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 
 import { useTotpItemDetail } from '../model/useTotpItemDetail';
-import { LoginDeleteSection } from './LoginDeleteSection';
-import { LoginMetadataSection } from './LoginMetadataSection';
-import { LoginPasswordSection } from './LoginPasswordSection';
+import { CredentialDeleteSection } from './CredentialDeleteSection';
+import { CredentialMetadataSection } from './CredentialMetadataSection';
+import { CredentialPasswordSection } from './CredentialPasswordSection';
 import { TotpCodeSection } from './TotpCodeSection';
 
-type LoginItem = Extract<VaultItemDetail, { type: 'login' }>;
+type CredentialItem = Extract<VaultItemDetail, { type: 'login' }>;
 
-type LoginItemDetailProps = {
-  item: LoginItem;
+type CredentialItemDetailProps = {
+  item: CredentialItem;
   revealedPassword: string | null;
   isRevealingPassword: boolean;
   isCopyingPassword: boolean;
@@ -22,11 +22,11 @@ type LoginItemDetailProps = {
   onRevealPassword: (id: string) => void;
   onHidePassword: () => void;
   onCopyPassword: (id: string) => void;
-  onDeleteLoginItem: (id: string) => void;
+  onDeleteCredentialItem: (id: string) => void;
   onItemUpdated?: (item: VaultItemDetail) => void | Promise<void>;
 };
 
-export function LoginItemDetail({
+export function CredentialItemDetail({
   item,
   revealedPassword,
   isRevealingPassword,
@@ -38,9 +38,9 @@ export function LoginItemDetail({
   onRevealPassword,
   onHidePassword,
   onCopyPassword,
-  onDeleteLoginItem,
+  onDeleteCredentialItem,
   onItemUpdated,
-}: LoginItemDetailProps) {
+}: CredentialItemDetailProps) {
   const {
     code,
     expiresIn,
@@ -63,13 +63,13 @@ export function LoginItemDetail({
         </CardHeader>
 
         <CardContent className="space-y-6">
-          <LoginMetadataSection
+          <CredentialMetadataSection
             username={item.username}
             website={item.website}
             notes={item.notes}
           />
 
-          <LoginPasswordSection
+          <CredentialPasswordSection
             passwordMasked={item.passwordMasked}
             revealedPassword={revealedPassword}
             isRevealingPassword={isRevealingPassword}
@@ -94,11 +94,11 @@ export function LoginItemDetail({
             />
           ) : null}
 
-          <LoginDeleteSection
+          <CredentialDeleteSection
             title={item.title}
             isDeletingItem={isDeletingItem}
             deleteError={deleteError}
-            onDelete={() => onDeleteLoginItem(item.id)}
+            onDelete={() => onDeleteCredentialItem(item.id)}
           />
         </CardContent>
       </Card>
