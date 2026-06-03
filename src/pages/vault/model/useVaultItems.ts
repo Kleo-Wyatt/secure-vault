@@ -70,9 +70,9 @@ function getNextSelectedItemId(
   return remainingItems[nextIndex]?.id ?? '';
 }
 
-function getCreateListId(selectedListId: string) {
+function getRequiredCreateListId(selectedListId: string) {
   if (selectedListId === ALL_ITEMS_LIST_ID) {
-    return undefined;
+    throw new Error('Select a list before creating an item.');
   }
 
   return selectedListId;
@@ -175,7 +175,7 @@ export function useVaultItems() {
   async function handleCreateCredential(input: CreateCredentialItemInput) {
     const newItem = await createCredentialItem({
       ...input,
-      listId: getCreateListId(selectedListId),
+      listId: getRequiredCreateListId(selectedListId),
     });
 
     setItems((currentItems) => [newItem, ...currentItems]);
@@ -185,7 +185,7 @@ export function useVaultItems() {
   async function handleCreateTotp(input: CreateTotpItemInput) {
     const newItem = await createTotpItem({
       ...input,
-      listId: getCreateListId(selectedListId),
+      listId: getRequiredCreateListId(selectedListId),
     });
 
     setItems((currentItems) => [newItem, ...currentItems]);
