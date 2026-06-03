@@ -1,4 +1,7 @@
-import type { VaultItemDetail } from '@/entities/item';
+import {
+  LEGACY_CREDENTIAL_ITEM_TYPE,
+  type VaultItemDetail,
+} from '@/entities/item';
 import type {
   CreateCredentialItemInput,
   CreateTotpItemInput,
@@ -6,7 +9,7 @@ import type {
 import { callTauriCommand } from '@/shared/api/tauri';
 
 type CreateCredentialItemArgs = {
-  itemType: 'login';
+  itemType: typeof LEGACY_CREDENTIAL_ITEM_TYPE;
   listId?: string;
   credential: Omit<CreateCredentialItemInput, 'listId'>;
 };
@@ -24,7 +27,7 @@ export function createCredentialItem(input: CreateCredentialItemInput) {
     'create_item',
     {
       args: {
-        itemType: 'login',
+        itemType: LEGACY_CREDENTIAL_ITEM_TYPE,
         listId,
         credential,
       },

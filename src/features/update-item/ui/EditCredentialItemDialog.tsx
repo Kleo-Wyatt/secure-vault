@@ -3,6 +3,7 @@ import { useState } from 'react';
 
 import {
   CredentialItemForm,
+  type CredentialItemDetail,
   type CredentialItemFormValues,
   type VaultItemDetail,
 } from '@/entities/item';
@@ -17,7 +18,7 @@ import {
   DialogTrigger,
 } from '@/shared/ui/dialog';
 
-type CredentialItem = Extract<VaultItemDetail, { type: 'login' }>;
+type CredentialItem = CredentialItemDetail;
 
 type EditCredentialItemDialogProps = {
   item: CredentialItem;

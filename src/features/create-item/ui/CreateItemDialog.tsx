@@ -38,7 +38,7 @@ const itemTypes: Array<{
   icon: ComponentType<{ className?: string }>;
 }> = [
   {
-    type: 'login',
+    type: LEGACY_CREDENTIAL_ITEM_TYPE,
     title: 'Credential',
     description: 'Store username, password, website, 2FA and notes.',
     icon: KeyRound,
@@ -64,7 +64,7 @@ const itemTypes: Array<{
 ];
 
 function getDialogTitle(selectedType: VaultItemType | null) {
-  if (selectedType === 'login') {
+  if (selectedType === LEGACY_CREDENTIAL_ITEM_TYPE) {
     return 'Create credential';
   }
 
@@ -76,7 +76,7 @@ function getDialogTitle(selectedType: VaultItemType | null) {
 }
 
 function getDialogDescription(selectedType: VaultItemType | null) {
-  if (selectedType === 'login') {
+  if (selectedType === LEGACY_CREDENTIAL_ITEM_TYPE) {
     return 'Add account credentials and optional security details.';
   }
 
@@ -146,7 +146,7 @@ export function CreateItemDialog({
   }
 
   function renderContent() {
-    if (selectedType === 'login') {
+    if (selectedType === LEGACY_CREDENTIAL_ITEM_TYPE) {
       return (
         <CreateCredentialItemForm
           includeTotp={includeTotpInCredentialForm }

@@ -1,4 +1,7 @@
-import type { VaultItemDetail } from '@/entities/item';
+import type {
+  CredentialItemDetail as CredentialItem,
+  VaultItemDetail,
+} from '@/entities/item';
 import { EditCredentialItemDialog } from '@/features/update-item';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 
@@ -7,8 +10,6 @@ import { CredentialDeleteSection } from './CredentialDeleteSection';
 import { CredentialMetadataSection } from './CredentialMetadataSection';
 import { CredentialPasswordSection } from './CredentialPasswordSection';
 import { TotpCodeSection } from './TotpCodeSection';
-
-type CredentialItem = Extract<VaultItemDetail, { type: 'login' }>;
 
 type CredentialItemDetailProps = {
   item: CredentialItem;
