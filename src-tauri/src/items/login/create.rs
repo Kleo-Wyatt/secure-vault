@@ -3,7 +3,8 @@ use uuid::Uuid;
 
 use crate::crypto::vault_key::VaultKey;
 use crate::items::login::mapping::{
-    credential_description, credential_detail, encrypt_credential_payload, LOGIN_ITEM_TYPE,
+    credential_description, credential_detail, encrypt_credential_payload,
+    LEGACY_CREDENTIAL_ITEM_TYPE,
 };
 use crate::items::login::normalize::{
     normalize_optional_credential_totp, normalize_optional_text, normalize_optional_website,
@@ -26,7 +27,7 @@ pub fn create_credential_item(
     }
 
     let item_id = Uuid::new_v4().to_string();
-    let item_type = LOGIN_ITEM_TYPE.to_string();
+    let item_type = LEGACY_CREDENTIAL_ITEM_TYPE.to_string();
     let now = Utc::now().to_rfc3339();
 
     let title = normalize_required_title(&credential.title)?;

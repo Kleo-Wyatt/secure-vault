@@ -4,7 +4,7 @@ use crate::items::model::{VaultItemDetail, VaultItemType};
 use crate::items::payloads::{CredentialItemEncryptedPayload, CredentialItemTotpEncryptedPayload};
 use crate::vault::format::VAULT_VERSION;
 
-pub const LOGIN_ITEM_TYPE: &str = "login";
+pub const LEGACY_CREDENTIAL_ITEM_TYPE: &str = "login";
 
 const DEFAULT_CREDENTIAL_DESCRIPTION: &str = "Credential";
 const MASKED_PASSWORD: &str = "••••••••••••••••";

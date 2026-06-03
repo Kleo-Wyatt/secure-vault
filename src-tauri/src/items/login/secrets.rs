@@ -1,5 +1,5 @@
 use crate::crypto::vault_key::VaultKey;
-use crate::items::login::mapping::LOGIN_ITEM_TYPE;
+use crate::items::login::mapping::LEGACY_CREDENTIAL_ITEM_TYPE;
 use crate::items::payloads::decrypt_credential_payload;
 use crate::items::repository::VaultItemRepository;
 
@@ -21,5 +21,5 @@ pub fn delete_credential_file_item(
     repository: &VaultItemRepository<'_>,
     item_id: &str,
 ) -> Result<(), String> {
-    repository.delete_file_item_of_type(item_id, LOGIN_ITEM_TYPE)
+    repository.delete_file_item_of_type(item_id, LEGACY_CREDENTIAL_ITEM_TYPE)
 }

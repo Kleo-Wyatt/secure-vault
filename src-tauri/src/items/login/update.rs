@@ -2,7 +2,8 @@ use chrono::Utc;
 
 use crate::crypto::vault_key::VaultKey;
 use crate::items::login::mapping::{
-    credential_description, credential_detail, encrypt_credential_payload, LOGIN_ITEM_TYPE,
+    credential_description, credential_detail, encrypt_credential_payload,
+    LEGACY_CREDENTIAL_ITEM_TYPE,
 };
 use crate::items::login::normalize::{
     normalize_optional_text, normalize_optional_website, normalize_required_title,
@@ -24,7 +25,7 @@ pub fn update_credential_item(
 
     let existing_file_item = repository.find_file_item(item_id)?;
 
-    if existing_file_item.item_type != LOGIN_ITEM_TYPE {
+    if existing_file_item.item_type != LEGACY_CREDENTIAL_ITEM_TYPE {
         return Err("Unsupported item type.".to_string());
     }
 

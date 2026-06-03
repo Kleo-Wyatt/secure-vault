@@ -6,7 +6,7 @@ use sha1::Sha1;
 use sha2::{Sha256, Sha512};
 
 use crate::crypto::vault_key::VaultKey;
-use crate::items::login::mapping::LOGIN_ITEM_TYPE;
+use crate::items::login::mapping::LEGACY_CREDENTIAL_ITEM_TYPE;
 use crate::items::payloads::{decrypt_credential_payload, decrypt_totp_payload};
 use crate::items::repository::VaultItemRepository;
 use crate::items::totp::mapping::TOTP_ITEM_TYPE;
@@ -39,7 +39,7 @@ pub fn generate_totp_code(
                 payload.period,
             )
         }
-        LOGIN_ITEM_TYPE => {
+        LEGACY_CREDENTIAL_ITEM_TYPE => {
             let payload = decrypt_credential_payload(&file_item, vault_key)
                 .map_err(|_| "Could not generate TOTP code.".to_string())?;
 
