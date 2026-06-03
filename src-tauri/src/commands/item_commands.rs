@@ -10,7 +10,7 @@ use crate::commands::item_runtime::{
     insert_runtime_item, list_runtime_items, normalize_required_item_id, remove_runtime_item,
     replace_runtime_item, require_unlocked_vault_key, validate_password_secret_type,
 };
-use crate::items::login::{
+use crate::items::credential::{
     create_credential_item, delete_credential_file_item, read_credential_password,
     update_credential_item,
 };

@@ -2,11 +2,11 @@ use chrono::Utc;
 use uuid::Uuid;
 
 use crate::crypto::vault_key::VaultKey;
-use crate::items::login::mapping::{
+use crate::items::credential::mapping::{
     credential_description, credential_detail, encrypt_credential_payload,
     LEGACY_CREDENTIAL_ITEM_TYPE,
 };
-use crate::items::login::normalize::{
+use crate::items::credential::normalize::{
     normalize_optional_credential_totp, normalize_optional_text, normalize_optional_website,
     normalize_required_title,
 };

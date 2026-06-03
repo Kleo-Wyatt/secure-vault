@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::crypto::item_payload::{build_item_aad, decrypt_item_payload};
 use crate::crypto::vault_key::VaultKey;
-use crate::items::login::mapping::credential_detail_from_payload;
+use crate::items::credential::mapping::credential_detail_from_payload;
 use crate::items::model::VaultItemDetail;
 use crate::items::totp::mapping::totp_detail_from_payload;
 use crate::vault::format::{VaultFileItem, VAULT_VERSION};
