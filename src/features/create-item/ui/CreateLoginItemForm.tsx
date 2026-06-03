@@ -1,7 +1,10 @@
 import { useState } from 'react';
 import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
 
-import { LoginItemForm, type LoginItemFormValues } from '@/entities/item';
+import {
+  CredentialItemForm,
+  type CredentialItemFormValues,
+} from '@/entities/item';
 import type {
   CreateLoginItemInput,
   CreateLoginItemTotpInput,
@@ -9,7 +12,7 @@ import type {
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 
-type CreateLoginItemFormProps = {
+type CreateCredentialItemFormProps = {
   includeTotp?: boolean;
   onBack: () => void;
   onCreate: (input: CreateLoginItemInput) => Promise<void> | void;
@@ -39,11 +42,11 @@ function getTotpSecretValidationError(value: string) {
   return null;
 }
 
-export function CreateLoginItemForm({
+export function CreateCredentialItemForm({
   includeTotp = false,
   onBack,
   onCreate,
-}: CreateLoginItemFormProps) {
+}: CreateCredentialItemFormProps) {
   const [totpSecret, setTotpSecret] = useState('');
   const [isTotpSecretVisible, setIsTotpSecretVisible] = useState(false);
 
@@ -55,7 +58,7 @@ export function CreateLoginItemForm({
     Boolean(totpSecret) && Boolean(totpSecretError);
 
   function getTotpInput(
-    values: LoginItemFormValues,
+    values: CredentialItemFormValues,
   ): CreateLoginItemTotpInput | undefined {
     if (!includeTotp) {
       return undefined;
@@ -71,7 +74,7 @@ export function CreateLoginItemForm({
     };
   }
 
-  async function handleCreate(values: LoginItemFormValues) {
+  async function handleCreate(values: CredentialItemFormValues) {
     const password = values.password ?? '';
 
     if (!password || totpSecretError) {
@@ -167,7 +170,7 @@ export function CreateLoginItemForm({
         </Button>
       </div>
 
-      <LoginItemForm
+      <CredentialItemForm
         idPrefix="create-login"
         resetKey="create-login"
         requirePassword

@@ -4,7 +4,7 @@ import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 import { Textarea } from '@/shared/ui/textarea';
 
-type LoginItemTextFieldProps = {
+type CredentialItemTextFieldProps = {
   id: string;
   label: string;
   value: string;
@@ -15,7 +15,7 @@ type LoginItemTextFieldProps = {
   onChange: (value: string) => void;
 };
 
-export function LoginItemTextField({
+export function CredentialItemTextField({
   id,
   label,
   value,
@@ -24,7 +24,7 @@ export function LoginItemTextField({
   autoFocus,
   errorMessage,
   onChange,
-}: LoginItemTextFieldProps) {
+}: CredentialItemTextFieldProps) {
   const errorId = `${id}-error`;
 
   return (
@@ -52,7 +52,7 @@ export function LoginItemTextField({
   );
 }
 
-type LoginItemPasswordFieldProps = {
+type CredentialItemPasswordFieldProps = {
   id: string;
   label: string;
   value: string;
@@ -63,7 +63,7 @@ type LoginItemPasswordFieldProps = {
   onToggleVisible: () => void;
 };
 
-export function LoginItemPasswordField({
+export function CredentialItemPasswordField({
   id,
   label,
   value,
@@ -72,7 +72,7 @@ export function LoginItemPasswordField({
   isVisible,
   onChange,
   onToggleVisible,
-}: LoginItemPasswordFieldProps) {
+}: CredentialItemPasswordFieldProps) {
   return (
     <div className="flex flex-col gap-2">
       <label className="text-sm font-medium" htmlFor={id}>
@@ -109,7 +109,7 @@ export function LoginItemPasswordField({
   );
 }
 
-type LoginItemTextareaFieldProps = {
+type CredentialItemTextareaFieldProps = {
   id: string;
   label: string;
   value: string;
@@ -118,14 +118,14 @@ type LoginItemTextareaFieldProps = {
   onChange: (value: string) => void;
 };
 
-export function LoginItemTextareaField({
+export function CredentialItemTextareaField({
   id,
   label,
   value,
   placeholder,
   rows = 4,
   onChange,
-}: LoginItemTextareaFieldProps) {
+}: CredentialItemTextareaFieldProps) {
   return (
     <div className="flex flex-col gap-2">
       <label className="text-sm font-medium" htmlFor={id}>

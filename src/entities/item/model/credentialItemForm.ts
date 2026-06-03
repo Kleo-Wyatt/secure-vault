@@ -1,6 +1,6 @@
 import { getHttpExternalUrlValidationError } from '@/shared/lib/externalUrl';
 
-export type LoginItemFormValues = {
+export type CredentialItemFormValues = {
   title: string;
   username?: string;
   password?: string;
@@ -8,7 +8,7 @@ export type LoginItemFormValues = {
   notes?: string;
 };
 
-export type LoginItemFormState = {
+export type CredentialItemFormState = {
   title: string;
   username: string;
   password: string;
@@ -16,9 +16,9 @@ export type LoginItemFormState = {
   notes: string;
 };
 
-export function getLoginItemFormState(
-  values?: Partial<LoginItemFormValues>,
-): LoginItemFormState {
+export function getCredentialItemFormState(
+  values?: Partial<CredentialItemFormValues>,
+): CredentialItemFormState {
   return {
     title: values?.title ?? '',
     username: values?.username ?? '',
@@ -28,9 +28,9 @@ export function getLoginItemFormState(
   };
 }
 
-export function normalizeLoginItemFormValues(
-  values: LoginItemFormState,
-): LoginItemFormValues {
+export function normalizeCredentialItemFormValues(
+  values: CredentialItemFormState,
+): CredentialItemFormValues {
   return {
     title: values.title.trim(),
     username: normalizeOptionalText(values.username),
@@ -40,9 +40,9 @@ export function normalizeLoginItemFormValues(
   };
 }
 
-export function areLoginItemFormValuesEqual(
-  firstValues: LoginItemFormValues,
-  secondValues: LoginItemFormValues,
+export function areCredentialItemFormValuesEqual(
+  firstValues: CredentialItemFormValues,
+  secondValues: CredentialItemFormValues,
 ) {
   return (
     firstValues.title === secondValues.title &&
@@ -53,7 +53,7 @@ export function areLoginItemFormValuesEqual(
   );
 }
 
-export function getLoginWebsiteValidationError(value: string) {
+export function getCredentialWebsiteValidationError(value: string) {
   return getHttpExternalUrlValidationError(value);
 }
 

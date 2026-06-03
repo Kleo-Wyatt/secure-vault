@@ -1,6 +1,6 @@
 export { mockVaultItemDetails, mockVaultItems } from './model/mockItems';
-export { LoginItemForm } from './ui/LoginItemForm';
-export type { LoginItemFormValues } from './model/loginItemForm';
+export { CredentialItemForm } from './ui/CredentialItemForm';
+export type { CredentialItemFormValues } from './model/credentialItemForm';
 export type {
   LoginItemDetail,
   SecureNoteItemDetail,

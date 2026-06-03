@@ -1,23 +1,23 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
 
 import {
-  areLoginItemFormValuesEqual,
-  getLoginItemFormState,
-  getLoginWebsiteValidationError,
-  normalizeLoginItemFormValues,
-  type LoginItemFormValues,
-} from '@/entities/item/model/loginItemForm';
+  areCredentialItemFormValuesEqual,
+  getCredentialItemFormState,
+  getCredentialWebsiteValidationError,
+  normalizeCredentialItemFormValues,
+  type CredentialItemFormValues,
+} from '@/entities/item/model/credentialItemForm';
 import { Button } from '@/shared/ui/button';
 
 import {
-  LoginItemPasswordField,
-  LoginItemTextareaField,
-  LoginItemTextField,
-} from './LoginItemFormFields';
+  CredentialItemPasswordField,
+  CredentialItemTextareaField,
+  CredentialItemTextField,
+} from './CredentialItemFormFields';
 
-type LoginItemFormProps = {
+type CredentialItemFormProps = {
   idPrefix?: string;
-  initialValues?: Partial<LoginItemFormValues>;
+  initialValues?: Partial<CredentialItemFormValues>;
   resetKey?: string;
   requirePassword?: boolean;
   requireDirty?: boolean;
@@ -32,11 +32,11 @@ type LoginItemFormProps = {
   cancelLabel?: string;
   resetAfterSubmit?: boolean;
   onCancel?: () => void;
-  onSubmit: (values: LoginItemFormValues) => Promise<void> | void;
+  onSubmit: (values: CredentialItemFormValues) => Promise<void> | void;
 };
 
-export function LoginItemForm({
-  idPrefix = 'login',
+export function CredentialItemForm({
+  idPrefix = 'credential',
   initialValues,
   resetKey,
   requirePassword = false,
@@ -53,8 +53,8 @@ export function LoginItemForm({
   resetAfterSubmit = false,
   onCancel,
   onSubmit,
-}: LoginItemFormProps) {
-  const initialFormState = getLoginItemFormState(initialValues);
+}: CredentialItemFormProps) {
+  const initialFormState = getCredentialItemFormState(initialValues);
 
   const [title, setTitle] = useState(initialFormState.title);
   const [username, setUsername] = useState(initialFormState.username);
@@ -65,9 +65,9 @@ export function LoginItemForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const websiteError = getLoginWebsiteValidationError(website);
+  const websiteError = getCredentialWebsiteValidationError(website);
 
-  const currentValues = normalizeLoginItemFormValues({
+  const currentValues = normalizeCredentialItemFormValues({
     title,
     username,
     password,
@@ -76,9 +76,9 @@ export function LoginItemForm({
   });
 
   const normalizedInitialValues =
-    normalizeLoginItemFormValues(initialFormState);
+    normalizeCredentialItemFormValues(initialFormState);
 
-  const isDirty = !areLoginItemFormValuesEqual(
+  const isDirty = !areCredentialItemFormValuesEqual(
     currentValues,
     normalizedInitialValues,
   );
@@ -92,7 +92,7 @@ export function LoginItemForm({
     !isSubmitting;
 
   useEffect(() => {
-    const nextInitialFormState = getLoginItemFormState(initialValues);
+    const nextInitialFormState = getCredentialItemFormState(initialValues);
 
     setTitle(nextInitialFormState.title);
     setUsername(nextInitialFormState.username);
@@ -105,7 +105,7 @@ export function LoginItemForm({
   }, [resetKey]);
 
   function resetForm() {
-    const nextInitialFormState = getLoginItemFormState(initialValues);
+    const nextInitialFormState = getCredentialItemFormState(initialValues);
 
     setTitle(nextInitialFormState.title);
     setUsername(nextInitialFormState.username);
@@ -141,7 +141,7 @@ export function LoginItemForm({
 
   return (
     <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
-      <LoginItemTextField
+      <CredentialItemTextField
         id={`${idPrefix}-title`}
         label="Title"
         value={title}
@@ -150,7 +150,7 @@ export function LoginItemForm({
         autoFocus
       />
 
-      <LoginItemTextField
+      <CredentialItemTextField
         id={`${idPrefix}-username`}
         label="Username or email"
         value={username}
@@ -159,7 +159,7 @@ export function LoginItemForm({
         autoComplete="username"
       />
 
-      <LoginItemPasswordField
+      <CredentialItemPasswordField
         id={`${idPrefix}-password`}
         label={passwordLabel}
         value={password}
@@ -170,7 +170,7 @@ export function LoginItemForm({
         onToggleVisible={() => setIsPasswordVisible((value) => !value)}
       />
 
-      <LoginItemTextField
+      <CredentialItemTextField
         id={`${idPrefix}-website`}
         label="Website"
         value={website}
@@ -182,7 +182,7 @@ export function LoginItemForm({
 
       {extraFieldsBeforeNotes}
 
-      <LoginItemTextareaField
+      <CredentialItemTextareaField
         id={`${idPrefix}-notes`}
         label="Notes"
         value={notes}

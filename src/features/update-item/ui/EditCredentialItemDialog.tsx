@@ -2,8 +2,8 @@ import { Pencil } from 'lucide-react';
 import { useState } from 'react';
 
 import {
-  LoginItemForm,
-  type LoginItemFormValues,
+  CredentialItemForm,
+  type CredentialItemFormValues,
   type VaultItemDetail,
 } from '@/entities/item';
 import { updateCredentialItem } from '@/features/update-item/api/updateItem';
@@ -30,7 +30,7 @@ export function EditCredentialItemDialog({
 }: EditCredentialItemDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
 
-  async function handleUpdate(values: LoginItemFormValues) {
+  async function handleUpdate(values: CredentialItemFormValues) {
     const updatedItem = await updateCredentialItem(item.id, {
       title: values.title,
       username: values.username,
@@ -61,7 +61,7 @@ export function EditCredentialItemDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <LoginItemForm
+        <CredentialItemForm
           idPrefix={`edit-credential-${item.id}`}
           initialValues={{
             title: item.title,
