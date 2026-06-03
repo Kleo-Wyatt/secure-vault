@@ -55,7 +55,7 @@ pub fn decrypt_file_items(
         .collect()
 }
 
-pub fn decrypt_login_payload(
+pub fn decrypt_credential_payload(
     file_item: &VaultFileItem,
     vault_key: &VaultKey,
 ) -> Result<CredentialItemEncryptedPayload, String> {
@@ -68,7 +68,7 @@ pub fn decrypt_login_payload(
     let plaintext = decrypt_item_payload(&file_item.encrypted_payload, vault_key, &aad)?;
 
     serde_json::from_slice(&plaintext)
-        .map_err(|_| "Could not parse login item payload.".to_string())
+        .map_err(|_| "Could not parse credential item payload.".to_string())
 }
 
 pub fn decrypt_totp_payload(
@@ -91,17 +91,17 @@ fn decrypt_file_item(
     vault_key: &VaultKey,
 ) -> Result<VaultItemDetail, String> {
     match file_item.item_type.as_str() {
-        "login" => decrypt_login_item(file_item, vault_key),
+        "login" => decrypt_credential_item(file_item, vault_key),
         "totp" => decrypt_totp_item(file_item, vault_key),
         _ => Err("Unsupported item type.".to_string()),
     }
 }
 
-fn decrypt_login_item(
+fn decrypt_credential_item(
     file_item: &VaultFileItem,
     vault_key: &VaultKey,
 ) -> Result<VaultItemDetail, String> {
-    let payload = decrypt_login_payload(file_item, vault_key)?;
+    let payload = decrypt_credential_payload(file_item, vault_key)?;
 
     Ok(credential_detail_from_payload(
         file_item.id.clone(),

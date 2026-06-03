@@ -1,6 +1,6 @@
 use crate::crypto::vault_key::VaultKey;
 use crate::items::login::mapping::LOGIN_ITEM_TYPE;
-use crate::items::payloads::decrypt_login_payload;
+use crate::items::payloads::decrypt_credential_payload;
 use crate::items::repository::VaultItemRepository;
 
 pub fn read_login_password(
@@ -12,7 +12,7 @@ pub fn read_login_password(
     let file_item = repository.find_file_item(item_id)?;
 
     let payload =
-        decrypt_login_payload(&file_item, vault_key).map_err(|_| error_message.to_string())?;
+        decrypt_credential_payload(&file_item, vault_key).map_err(|_| error_message.to_string())?;
 
     Ok(payload.password)
 }

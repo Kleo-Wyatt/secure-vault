@@ -8,7 +8,7 @@ use crate::items::login::normalize::{
     normalize_optional_text, normalize_optional_website, normalize_required_title,
 };
 use crate::items::model::{UpdateCredentialItemPayload, VaultItemDetail};
-use crate::items::payloads::decrypt_login_payload;
+use crate::items::payloads::decrypt_credential_payload;
 use crate::items::repository::VaultItemRepository;
 use crate::vault::format::{VaultFileItem, VaultItemMetadata};
 
@@ -28,7 +28,7 @@ pub fn update_login_item(
         return Err("Unsupported item type.".to_string());
     }
 
-    let existing_payload = decrypt_login_payload(&existing_file_item, vault_key)
+    let existing_payload = decrypt_credential_payload(&existing_file_item, vault_key)
         .map_err(|_| "Could not update item.".to_string())?;
 
     let title = normalize_required_title(&credential.title)?;
