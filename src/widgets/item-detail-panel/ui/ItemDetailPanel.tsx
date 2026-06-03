@@ -1,8 +1,8 @@
-import type { VaultItemDetail } from '@/entities/item';
+import { isCredentialItem, type VaultItemDetail } from '@/entities/item';
 
-import { useLoginItemDetail } from '../model/useLoginItemDetail';
+import { useCredentialItemDetail } from '../model/useCredentialItemDetail';
+import { CredentialItemDetail } from './CredentialItemDetail';
 import { EmptyItemDetail } from './EmptyItemDetail';
-import { LoginItemDetail } from './LoginItemDetail';
 import { SecureNoteDetail } from './SecureNoteDetail';
 import { SeedPhraseItemDetail } from './SeedPhraseItemDetail';
 import { TotpItemDetail } from './TotpItemDetail';
@@ -18,10 +18,10 @@ export function ItemDetailPanel({
   onItemDeleted,
   onItemUpdated,
 }: ItemDetailPanelProps) {
-  const loginItemId = item?.type === 'login' ? item.id : undefined;
+  const credentialItemId = isCredentialItem(item) ? item.id : undefined;
 
-  const loginItemDetail = useLoginItemDetail({
-    itemId: loginItemId,
+  const credentialItemDetail = useCredentialItemDetail({
+    itemId: credentialItemId,
     onItemDeleted,
   });
 
@@ -29,23 +29,23 @@ export function ItemDetailPanel({
     return <EmptyItemDetail />;
   }
 
-  if (item.type === 'login') {
+  if (isCredentialItem(item)) {
     return (
-      <LoginItemDetail
+      <CredentialItemDetail
         item={item}
-        revealedPassword={loginItemDetail.revealedPassword}
-        isRevealingPassword={loginItemDetail.isRevealingPassword}
-        isCopyingPassword={loginItemDetail.isCopyingPassword}
-        isDeletingItem={loginItemDetail.isDeletingItem}
-        revealError={loginItemDetail.revealError}
-        copyMessage={loginItemDetail.copyMessage}
-        deleteError={loginItemDetail.deleteError}
-        onRevealPassword={loginItemDetail.handleRevealPassword}
-        onHidePassword={loginItemDetail.hidePassword}
-        onCopyPassword={loginItemDetail.handleCopyPassword}
-        onDeleteLoginItem={loginItemDetail.handleDeleteLoginItem}
+        revealedPassword={credentialItemDetail.revealedPassword}
+        isRevealingPassword={credentialItemDetail.isRevealingPassword}
+        isCopyingPassword={credentialItemDetail.isCopyingPassword}
+        isDeletingItem={credentialItemDetail.isDeletingItem}
+        revealError={credentialItemDetail.revealError}
+        copyMessage={credentialItemDetail.copyMessage}
+        deleteError={credentialItemDetail.deleteError}
+        onRevealPassword={credentialItemDetail.handleRevealPassword}
+        onHidePassword={credentialItemDetail.hidePassword}
+        onCopyPassword={credentialItemDetail.handleCopyPassword}
+        onDeleteCredentialItem={credentialItemDetail.handleDeleteCredentialItem}
         onItemUpdated={async (updatedItem) => {
-          loginItemDetail.clearTransientState();
+          credentialItemDetail.clearTransientState();
           await onItemUpdated?.(updatedItem);
         }}
       />

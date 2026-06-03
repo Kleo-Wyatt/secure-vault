@@ -1,35 +1,49 @@
 import { useMemo, useState } from 'react';
 import { Search } from 'lucide-react';
 
-import type { VaultItemSummary } from '@/entities/item';
+import { isCredentialItem, type VaultItemSummary } from '@/entities/item';
 import {
   CreateItemDialog,
-  type CreateLoginItemInput,
+  type CreateCredentialItemInput,
   type CreateTotpItemInput,
 } from '@/features/create-item';
+import type { VaultList } from '@/features/vault-lists';
 import { cn } from '@/shared/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Input } from '@/shared/ui/input';
 
 type ItemListProps = {
   items: VaultItemSummary[];
+  selectedVaultList?: VaultList;
   selectedItemId?: string;
   onSelectItem: (itemId: string) => void;
-  onCreateLogin: (input: CreateLoginItemInput) => void;
+  onCreateCredential: (input: CreateCredentialItemInput) => void;
   onCreateTotp: (input: CreateTotpItemInput) => void;
 };
 
-function getItemTypeLabel(type: VaultItemSummary['type']) {
-  switch (type) {
-    case 'login':
-      return 'Login';
+function getItemTypeLabel(item: VaultItemSummary) {
+  if (isCredentialItem(item)) {
+    return item.hasTotp ? 'Credential · 2FA' : 'Credential';
+  }
+
+  switch (item.type) {
     case 'totp':
       return 'TOTP';
     case 'seed_phrase':
       return 'Seed phrase';
     case 'secure_note':
       return 'Secure note';
+    default:
+      return 'Item';
   }
+}
+
+function getItemDescription(item: VaultItemSummary) {
+  if (isCredentialItem(item) && item.description === 'Credential') {
+    return null;
+  }
+
+  return item.description;
 }
 
 function matchesSearch(item: VaultItemSummary, searchQuery: string) {
@@ -39,11 +53,10 @@ function matchesSearch(item: VaultItemSummary, searchQuery: string) {
     return true;
   }
 
-  const searchableText = [
-    item.title,
-    item.description,
-    getItemTypeLabel(item.type),
-  ]
+  const description = getItemDescription(item);
+
+  const searchableText = [item.title, description, getItemTypeLabel(item)]
+    .filter(Boolean)
     .join(' ')
     .toLowerCase();
 
@@ -52,9 +65,10 @@ function matchesSearch(item: VaultItemSummary, searchQuery: string) {
 
 export function ItemList({
   items,
+  selectedVaultList,
   selectedItemId,
   onSelectItem,
-  onCreateLogin,
+  onCreateCredential,
   onCreateTotp,
 }: ItemListProps) {
   const [searchQuery, setSearchQuery] = useState('');
@@ -77,10 +91,13 @@ export function ItemList({
           />
         </div>
 
-        <CreateItemDialog
-          onCreateLogin={onCreateLogin}
-          onCreateTotp={onCreateTotp}
-        />
+        {selectedVaultList ? (
+          <CreateItemDialog
+            selectedVaultList={selectedVaultList}
+            onCreateCredential={onCreateCredential}
+            onCreateTotp={onCreateTotp}
+          />
+        ) : null}
       </div>
 
       {filteredItems.length === 0 ? (
@@ -93,6 +110,7 @@ export function ItemList({
         <div className="flex flex-col gap-2">
           {filteredItems.map((item) => {
             const isSelected = item.id === selectedItemId;
+            const description = getItemDescription(item);
 
             return (
               <button
@@ -113,12 +131,15 @@ export function ItemList({
 
                   <CardContent>
                     <p className="text-xs text-muted-foreground">
-                      {getItemTypeLabel(item.type)}
+                      {getItemTypeLabel(item)}
                       {item.isHighSecurity ? ' · High security' : ''}
                     </p>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      {item.description}
-                    </p>
+
+                    {description ? (
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {description}
+                      </p>
+                    ) : null}
                   </CardContent>
                 </Card>
               </button>

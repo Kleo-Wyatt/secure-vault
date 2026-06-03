@@ -3,7 +3,8 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum VaultItemType {
-    Login,
+    #[serde(rename = "login")]
+    Credential,
     Totp,
     SeedPhrase,
     SecureNote,
@@ -11,17 +12,29 @@ pub enum VaultItemType {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct CreateLoginItemPayload {
+pub struct CreateCredentialItemPayload {
     pub title: String,
     pub username: Option<String>,
     pub password: String,
     pub website: Option<String>,
+    pub totp: Option<CreateCredentialItemTotpPayload>,
     pub notes: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct UpdateLoginItemPayload {
+pub struct CreateCredentialItemTotpPayload {
+    pub issuer: Option<String>,
+    pub account: Option<String>,
+    pub secret: String,
+    pub algorithm: Option<String>,
+    pub digits: Option<u8>,
+    pub period: Option<u32>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct UpdateCredentialItemPayload {
     pub title: String,
     pub username: Option<String>,
     pub password: Option<String>,
@@ -46,6 +59,7 @@ pub struct CreateTotpItemPayload {
 #[serde(rename_all = "camelCase")]
 pub struct VaultItemDetail {
     pub id: String,
+    pub list_id: Option<String>,
 
     #[serde(rename = "type")]
     pub item_type: VaultItemType,
@@ -64,6 +78,7 @@ pub struct VaultItemDetail {
     pub period: Option<u32>,
     pub code: Option<String>,
     pub expires_in: Option<u32>,
+    pub has_totp: Option<bool>,
 
     pub notes: Option<String>,
 

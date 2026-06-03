@@ -1,39 +1,50 @@
-import type { VaultItemDetail } from '@/entities/item';
+import {
+  LEGACY_CREDENTIAL_ITEM_TYPE,
+  type VaultItemDetail,
+} from '@/entities/item';
 import type {
-  CreateLoginItemInput,
+  CreateCredentialItemInput,
   CreateTotpItemInput,
 } from '@/features/create-item/model/types';
 import { callTauriCommand } from '@/shared/api/tauri';
 
-type CreateLoginItemArgs = {
-  itemType: 'login';
-  login: CreateLoginItemInput;
+type CreateCredentialItemArgs = {
+  itemType: typeof LEGACY_CREDENTIAL_ITEM_TYPE;
+  listId?: string;
+  credential: Omit<CreateCredentialItemInput, 'listId'>;
 };
 
 type CreateTotpItemArgs = {
   itemType: 'totp';
-  totp: CreateTotpItemInput;
+  listId?: string;
+  totp: Omit<CreateTotpItemInput, 'listId'>;
 };
 
-export function createLoginItem(input: CreateLoginItemInput) {
-  return callTauriCommand<VaultItemDetail, { args: CreateLoginItemArgs }>(
+export function createCredentialItem(input: CreateCredentialItemInput) {
+  const { listId, ...credential } = input;
+
+  return callTauriCommand<VaultItemDetail, { args: CreateCredentialItemArgs }>(
     'create_item',
     {
       args: {
-        itemType: 'login',
-        login: input,
+        itemType: LEGACY_CREDENTIAL_ITEM_TYPE,
+        listId,
+        credential,
       },
     },
   );
 }
 
 export function createTotpItem(input: CreateTotpItemInput) {
+  const { listId, ...totp } = input;
+
   return callTauriCommand<VaultItemDetail, { args: CreateTotpItemArgs }>(
     'create_item',
     {
       args: {
         itemType: 'totp',
-        totp: input,
+        listId,
+        totp,
       },
     },
   );

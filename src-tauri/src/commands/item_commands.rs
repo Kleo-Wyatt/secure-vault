@@ -10,8 +10,10 @@ use crate::commands::item_runtime::{
     insert_runtime_item, list_runtime_items, normalize_required_item_id, remove_runtime_item,
     replace_runtime_item, require_unlocked_vault_key, validate_password_secret_type,
 };
-use crate::items::login::{
-    create_login_item, delete_login_file_item, read_login_password, update_login_item,
+use crate::items::credential::mapping::LEGACY_CREDENTIAL_ITEM_TYPE;
+use crate::items::credential::{
+    create_credential_item, delete_credential_file_item, read_credential_password,
+    update_credential_item,
 };
 use crate::items::model::VaultItemDetail;
 use crate::items::repository::VaultItemRepository;
@@ -19,6 +21,8 @@ use crate::items::totp::{
     create_totp_item, delete_totp_file_item, generate_totp_code as generate_totp_code_from_item,
 };
 use crate::state::AppState;
+use crate::vault::format::VaultListTemplate;
+use crate::vault::storage::load_vault_file;
 
 #[tauri::command]
 pub async fn create_item(
@@ -28,10 +32,15 @@ pub async fn create_item(
 ) -> Result<VaultItemDetail, String> {
     let vault_key = require_unlocked_vault_key(&state)?;
     let repository = VaultItemRepository::new(&app);
+    let list_id = normalize_required_list_id(args.list_id)?;
+
+    validate_create_item_list(&app, &list_id, &args.item_type)?;
 
     let (item, file_item) = match args.item_type.as_str() {
-        "login" => create_login_item(args.login, &vault_key)?,
-        "totp" => create_totp_item(args.totp, &vault_key)?,
+        item_type if item_type == LEGACY_CREDENTIAL_ITEM_TYPE => {
+            create_credential_item(args.credential, Some(list_id), &vault_key)?
+        }
+        "totp" => create_totp_item(args.totp, Some(list_id), &vault_key)?,
         _ => {
             return Err("Unsupported item type.".to_string());
         }
@@ -54,7 +63,9 @@ pub async fn update_item(
     let repository = VaultItemRepository::new(&app);
 
     let item = match args.item_type.as_str() {
-        "login" => update_login_item(&repository, &item_id, args.login, &vault_key)?,
+        item_type if item_type == LEGACY_CREDENTIAL_ITEM_TYPE => {
+            update_credential_item(&repository, &item_id, args.credential, &vault_key)?
+        }
         _ => {
             return Err("Unsupported item type.".to_string());
         }
@@ -82,7 +93,7 @@ pub async fn reveal_secret(
     let vault_key = require_unlocked_vault_key(&state)?;
     let repository = VaultItemRepository::new(&app);
 
-    let password = read_login_password(
+    let password = read_credential_password(
         &repository,
         &item_id,
         &vault_key,
@@ -105,7 +116,7 @@ pub async fn copy_secret(
     let repository = VaultItemRepository::new(&app);
 
     let password =
-        read_login_password(&repository, &item_id, &vault_key, "Could not copy secret.")?;
+        read_credential_password(&repository, &item_id, &vault_key, "Could not copy secret.")?;
 
     copy_secret_text(&password)?;
     schedule_clipboard_clear(app);
@@ -167,7 +178,9 @@ pub async fn delete_item(
     let file_item = repository.find_file_item(&item_id)?;
 
     match file_item.item_type.as_str() {
-        "login" => delete_login_file_item(&repository, &item_id)?,
+        item_type if item_type == LEGACY_CREDENTIAL_ITEM_TYPE => {
+            delete_credential_file_item(&repository, &item_id)?;
+        }
         "totp" => delete_totp_file_item(&repository, &item_id)?,
         _ => {
             return Err("Unsupported item type.".to_string());
@@ -177,4 +190,46 @@ pub async fn delete_item(
     remove_runtime_item(&state, &item_id)?;
 
     Ok(())
+}
+
+fn normalize_required_list_id(list_id: Option<String>) -> Result<String, String> {
+    let Some(list_id) = list_id else {
+        return Err("List id is required.".to_string());
+    };
+
+    let list_id = list_id.trim().to_string();
+
+    if list_id.is_empty() {
+        return Err("List id is required.".to_string());
+    }
+
+    Ok(list_id)
+}
+
+fn validate_create_item_list(
+    app: &tauri::AppHandle,
+    list_id: &str,
+    item_type: &str,
+) -> Result<(), String> {
+    let vault_file = load_vault_file(app)?;
+
+    let Some(list) = vault_file.lists.iter().find(|list| list.id == list_id) else {
+        return Err("Vault list was not found.".to_string());
+    };
+
+    validate_item_type_allowed_by_template(item_type, &list.template)
+}
+
+fn validate_item_type_allowed_by_template(
+    item_type: &str,
+    template: &VaultListTemplate,
+) -> Result<(), String> {
+    match item_type {
+        item_type if item_type == LEGACY_CREDENTIAL_ITEM_TYPE && template.credentials => Ok(()),
+        "totp" if template.totp => Ok(()),
+        item_type if item_type == LEGACY_CREDENTIAL_ITEM_TYPE || item_type == "totp" => {
+            Err("Item type is not enabled for this list.".to_string())
+        }
+        _ => Err("Unsupported item type.".to_string()),
+    }
 }

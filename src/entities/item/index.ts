@@ -1,8 +1,8 @@
-export { mockVaultItemDetails, mockVaultItems } from './model/mockItems';
-export { LoginItemForm } from './ui/LoginItemForm';
-export type { LoginItemFormValues } from './model/loginItemForm';
+export { CredentialItemForm } from './ui/CredentialItemForm';
+export type { CredentialItemFormValues } from './model/credentialItemForm';
+export { LEGACY_CREDENTIAL_ITEM_TYPE, isCredentialItem } from './model/types';
 export type {
-  LoginItemDetail,
+  CredentialItemDetail,
   SecureNoteItemDetail,
   SeedPhraseItemDetail,
   TotpItemDetail,

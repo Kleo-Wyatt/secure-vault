@@ -2,17 +2,17 @@ import { useState } from 'react';
 
 import { normalizeExternalUrl, openExternalUrl } from '@/features/open-url';
 
-type LoginMetadataSectionProps = {
+type CredentialMetadataSectionProps = {
   username?: string;
   website?: string;
   notes?: string;
 };
 
-export function LoginMetadataSection({
+export function CredentialMetadataSection({
   username,
   website,
   notes,
-}: LoginMetadataSectionProps) {
+}: CredentialMetadataSectionProps) {
   const [openWebsiteError, setOpenWebsiteError] = useState<string | null>(null);
 
   const normalizedWebsiteUrl = website ? normalizeExternalUrl(website) : null;

@@ -9,6 +9,7 @@ use crate::vault::format::{VaultFileItem, VaultItemMetadata};
 
 pub fn create_totp_item(
     payload: Option<CreateTotpItemPayload>,
+    list_id: Option<String>,
     vault_key: &VaultKey,
 ) -> Result<(VaultItemDetail, VaultFileItem), String> {
     let Some(totp) = payload else {
@@ -46,6 +47,7 @@ pub fn create_totp_item(
 
     let file_item = VaultFileItem {
         id: item_id.clone(),
+        list_id: list_id.clone(),
         item_type,
         metadata: VaultItemMetadata {
             title: totp.title.clone(),
@@ -58,6 +60,7 @@ pub fn create_totp_item(
 
     let item = totp_detail(
         item_id,
+        list_id,
         totp.title,
         totp.issuer,
         totp.account,

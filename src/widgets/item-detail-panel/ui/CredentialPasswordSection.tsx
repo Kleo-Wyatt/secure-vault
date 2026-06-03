@@ -1,6 +1,6 @@
 import { Button } from '@/shared/ui/button';
 
-type LoginPasswordSectionProps = {
+type CredentialPasswordSectionProps = {
   passwordMasked: string;
   revealedPassword: string | null;
   isRevealingPassword: boolean;
@@ -12,7 +12,7 @@ type LoginPasswordSectionProps = {
   onCopyPassword: () => void;
 };
 
-export function LoginPasswordSection({
+export function CredentialPasswordSection({
   passwordMasked,
   revealedPassword,
   isRevealingPassword,
@@ -22,7 +22,7 @@ export function LoginPasswordSection({
   onRevealPassword,
   onHidePassword,
   onCopyPassword,
-}: LoginPasswordSectionProps) {
+}: CredentialPasswordSectionProps) {
   return (
     <div>
       <p className="text-xs text-muted-foreground">Password</p>
@@ -75,14 +75,14 @@ export function LoginPasswordSection({
         </p>
       ) : null}
 
+      {revealError ? (
+        <p className="mt-2 text-xs text-destructive">{revealError}</p>
+      ) : null}
+
       {copyMessage ? (
         <p className="mt-2 rounded-lg border bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
           {copyMessage}
         </p>
-      ) : null}
-
-      {revealError ? (
-        <p className="mt-2 text-xs text-destructive">{revealError}</p>
       ) : null}
     </div>
   );

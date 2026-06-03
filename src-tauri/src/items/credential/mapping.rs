@@ -1,29 +1,31 @@
 use crate::crypto::item_payload::{build_item_aad, encrypt_item_payload, EncryptedPayload};
 use crate::crypto::vault_key::VaultKey;
 use crate::items::model::{VaultItemDetail, VaultItemType};
-use crate::items::payloads::LoginItemEncryptedPayload;
+use crate::items::payloads::{CredentialItemEncryptedPayload, CredentialItemTotpEncryptedPayload};
 use crate::vault::format::VAULT_VERSION;
 
-pub const LOGIN_ITEM_TYPE: &str = "login";
+pub const LEGACY_CREDENTIAL_ITEM_TYPE: &str = "login";
 
-const DEFAULT_LOGIN_DESCRIPTION: &str = "Login";
+const DEFAULT_CREDENTIAL_DESCRIPTION: &str = "Credential";
 const MASKED_PASSWORD: &str = "••••••••••••••••";
 
-pub fn encrypt_login_payload(
+pub fn encrypt_credential_payload(
     item_id: &str,
     item_type: &str,
     title: &str,
     username: Option<String>,
     password: String,
     website: Option<String>,
+    totp: Option<CredentialItemTotpEncryptedPayload>,
     notes: Option<String>,
     vault_key: &VaultKey,
 ) -> Result<EncryptedPayload, String> {
-    let payload = LoginItemEncryptedPayload {
+    let payload = CredentialItemEncryptedPayload {
         title: title.to_string(),
         username,
         password,
         website,
+        totp,
         notes,
     };
 
@@ -35,17 +37,20 @@ pub fn encrypt_login_payload(
     encrypt_item_payload(&plaintext, vault_key, &aad)
 }
 
-pub fn login_detail(
+pub fn credential_detail(
     id: String,
+    list_id: Option<String>,
     title: String,
     description: String,
     username: Option<String>,
     website: Option<String>,
+    has_totp: bool,
     notes: Option<String>,
 ) -> VaultItemDetail {
     VaultItemDetail {
         id,
-        item_type: VaultItemType::Login,
+        list_id,
+        item_type: VaultItemType::Credential,
         title,
         description,
         username,
@@ -58,29 +63,34 @@ pub fn login_detail(
         period: None,
         code: None,
         expires_in: None,
+        has_totp: Some(has_totp),
         notes,
         is_high_security: None,
     }
 }
 
-pub fn login_detail_from_payload(
+pub fn credential_detail_from_payload(
     id: String,
-    payload: LoginItemEncryptedPayload,
+    list_id: Option<String>,
+    payload: CredentialItemEncryptedPayload,
 ) -> VaultItemDetail {
-    let description = login_description(&payload.website);
+    let description = credential_description(&payload.website);
+    let has_totp = payload.totp.is_some();
 
-    login_detail(
+    credential_detail(
         id,
+        list_id,
         payload.title,
         description,
         payload.username,
         payload.website,
+        has_totp,
         payload.notes,
     )
 }
 
-pub fn login_description(website: &Option<String>) -> String {
+pub fn credential_description(website: &Option<String>) -> String {
     website
         .clone()
-        .unwrap_or_else(|| DEFAULT_LOGIN_DESCRIPTION.to_string())
+        .unwrap_or_else(|| DEFAULT_CREDENTIAL_DESCRIPTION.to_string())
 }

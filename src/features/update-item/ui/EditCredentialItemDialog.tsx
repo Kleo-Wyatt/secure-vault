@@ -2,11 +2,12 @@ import { Pencil } from 'lucide-react';
 import { useState } from 'react';
 
 import {
-  LoginItemForm,
-  type LoginItemFormValues,
+  CredentialItemForm,
+  type CredentialItemDetail,
+  type CredentialItemFormValues,
   type VaultItemDetail,
 } from '@/entities/item';
-import { updateLoginItem } from '@/features/update-item/api/updateItem';
+import { updateCredentialItem } from '@/features/update-item/api/updateItem';
 import { Button } from '@/shared/ui/button';
 import {
   Dialog,
@@ -17,21 +18,21 @@ import {
   DialogTrigger,
 } from '@/shared/ui/dialog';
 
-type LoginItem = Extract<VaultItemDetail, { type: 'login' }>;
+type CredentialItem = CredentialItemDetail;
 
-type EditLoginItemDialogProps = {
-  item: LoginItem;
+type EditCredentialItemDialogProps = {
+  item: CredentialItem;
   onUpdated?: (item: VaultItemDetail) => void | Promise<void>;
 };
 
-export function EditLoginItemDialog({
+export function EditCredentialItemDialog({
   item,
   onUpdated,
-}: EditLoginItemDialogProps) {
+}: EditCredentialItemDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
 
-  async function handleUpdate(values: LoginItemFormValues) {
-    const updatedItem = await updateLoginItem(item.id, {
+  async function handleUpdate(values: CredentialItemFormValues) {
+    const updatedItem = await updateCredentialItem(item.id, {
       title: values.title,
       username: values.username,
       password: values.password,
@@ -54,15 +55,15 @@ export function EditLoginItemDialog({
 
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Edit login</DialogTitle>
+          <DialogTitle>Edit credential</DialogTitle>
           <DialogDescription>
-            Update login metadata or enter a new password. Leave password empty
-            to keep the current one.
+            Update credential metadata or enter a new password. Leave password
+            empty to keep the current one.
           </DialogDescription>
         </DialogHeader>
 
-        <LoginItemForm
-          idPrefix={`edit-login-${item.id}`}
+        <CredentialItemForm
+          idPrefix={`edit-credential-${item.id}`}
           initialValues={{
             title: item.title,
             username: item.username,
@@ -76,7 +77,7 @@ export function EditLoginItemDialog({
           passwordHelpText="The existing password is not loaded into the form."
           submitLabel="Save changes"
           submittingLabel="Saving..."
-          submitErrorMessage="Could not update login item."
+          submitErrorMessage="Could not update credential."
           cancelLabel="Cancel"
           onCancel={() => setIsOpen(false)}
           onSubmit={handleUpdate}

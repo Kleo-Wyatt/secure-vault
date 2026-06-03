@@ -1,18 +1,27 @@
-export type VaultItemType = 'login' | 'totp' | 'seed_phrase' | 'secure_note';
+export const LEGACY_CREDENTIAL_ITEM_TYPE = 'login' as const;
+
+export type VaultItemType =
+  | typeof LEGACY_CREDENTIAL_ITEM_TYPE
+  | 'totp'
+  | 'seed_phrase'
+  | 'secure_note';
 
 export type VaultItemSummary = {
   id: string;
+  listId?: string;
   title: string;
   type: VaultItemType;
   description: string;
+  hasTotp?: boolean;
   isHighSecurity?: boolean;
 };
 
-export type LoginItemDetail = VaultItemSummary & {
-  type: 'login';
+export type CredentialItemDetail = VaultItemSummary & {
+  type: typeof LEGACY_CREDENTIAL_ITEM_TYPE;
   username?: string;
   website?: string;
   passwordMasked: string;
+  hasTotp?: boolean;
   notes?: string;
 };
 
@@ -42,7 +51,13 @@ export type SecureNoteItemDetail = VaultItemSummary & {
 };
 
 export type VaultItemDetail =
-  | LoginItemDetail
+  | CredentialItemDetail
   | TotpItemDetail
   | SeedPhraseItemDetail
   | SecureNoteItemDetail;
+
+export function isCredentialItem(
+  item?: VaultItemDetail | VaultItemSummary,
+): item is CredentialItemDetail {
+  return item?.type === LEGACY_CREDENTIAL_ITEM_TYPE;
+}

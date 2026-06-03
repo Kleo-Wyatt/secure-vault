@@ -1,9 +1,9 @@
 use crate::crypto::vault_key::VaultKey;
-use crate::items::login::mapping::LOGIN_ITEM_TYPE;
-use crate::items::payloads::decrypt_login_payload;
+use crate::items::credential::mapping::LEGACY_CREDENTIAL_ITEM_TYPE;
+use crate::items::payloads::decrypt_credential_payload;
 use crate::items::repository::VaultItemRepository;
 
-pub fn read_login_password(
+pub fn read_credential_password(
     repository: &VaultItemRepository<'_>,
     item_id: &str,
     vault_key: &VaultKey,
@@ -12,14 +12,14 @@ pub fn read_login_password(
     let file_item = repository.find_file_item(item_id)?;
 
     let payload =
-        decrypt_login_payload(&file_item, vault_key).map_err(|_| error_message.to_string())?;
+        decrypt_credential_payload(&file_item, vault_key).map_err(|_| error_message.to_string())?;
 
     Ok(payload.password)
 }
 
-pub fn delete_login_file_item(
+pub fn delete_credential_file_item(
     repository: &VaultItemRepository<'_>,
     item_id: &str,
 ) -> Result<(), String> {
-    repository.delete_file_item_of_type(item_id, LOGIN_ITEM_TYPE)
+    repository.delete_file_item_of_type(item_id, LEGACY_CREDENTIAL_ITEM_TYPE)
 }

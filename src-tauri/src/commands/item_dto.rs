@@ -1,12 +1,18 @@
 use serde::{Deserialize, Serialize};
 
-use crate::items::model::{CreateLoginItemPayload, CreateTotpItemPayload, UpdateLoginItemPayload};
+use crate::items::model::{
+    CreateCredentialItemPayload, CreateTotpItemPayload, UpdateCredentialItemPayload,
+};
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CreateItemArgs {
     pub item_type: String,
-    pub login: Option<CreateLoginItemPayload>,
+    pub list_id: Option<String>,
+
+    #[serde(default, alias = "login")]
+    pub credential: Option<CreateCredentialItemPayload>,
+
     pub totp: Option<CreateTotpItemPayload>,
 }
 
@@ -15,7 +21,9 @@ pub struct CreateItemArgs {
 pub struct UpdateItemArgs {
     pub id: String,
     pub item_type: String,
-    pub login: Option<UpdateLoginItemPayload>,
+
+    #[serde(default, alias = "login")]
+    pub credential: Option<UpdateCredentialItemPayload>,
 }
 
 #[derive(Debug, Deserialize)]

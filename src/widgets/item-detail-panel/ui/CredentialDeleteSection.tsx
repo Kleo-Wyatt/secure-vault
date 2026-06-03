@@ -13,32 +13,32 @@ import {
 } from '@/shared/ui/alert-dialog';
 import { Button } from '@/shared/ui/button';
 
-type LoginDeleteSectionProps = {
+type CredentialDeleteSectionProps = {
   title: string;
   isDeletingItem: boolean;
   deleteError: string | null;
   onDelete: () => void;
 };
 
-export function LoginDeleteSection({
+export function CredentialDeleteSection({
   title,
   isDeletingItem,
   deleteError,
   onDelete,
-}: LoginDeleteSectionProps) {
+}: CredentialDeleteSectionProps) {
   return (
     <div className="border-t pt-4">
       <AlertDialog>
         <AlertDialogTrigger asChild>
           <Button variant="destructive" disabled={isDeletingItem}>
             <Trash2 className="size-4" />
-            {isDeletingItem ? 'Deleting...' : 'Delete login'}
+            {isDeletingItem ? 'Deleting...' : 'Delete credential'}
           </Button>
         </AlertDialogTrigger>
 
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete login item?</AlertDialogTitle>
+            <AlertDialogTitle>Delete credential?</AlertDialogTitle>
             <AlertDialogDescription>
               Delete “{title}”? This action cannot be undone.
             </AlertDialogDescription>

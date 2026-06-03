@@ -10,6 +10,7 @@ use commands::item_commands::{
     reveal_secret, update_item,
 };
 use commands::vault_commands::{create_vault, lock_vault, unlock_vault};
+use commands::vault_list_commands::{create_vault_list, list_vault_lists};
 
 fn main() {
     tauri::Builder::default()
@@ -26,7 +27,9 @@ fn main() {
             copy_secret,
             generate_totp_code,
             copy_totp_code,
-            delete_item
+            delete_item,
+            list_vault_lists,
+            create_vault_list
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

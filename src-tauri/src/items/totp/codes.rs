@@ -6,7 +6,8 @@ use sha1::Sha1;
 use sha2::{Sha256, Sha512};
 
 use crate::crypto::vault_key::VaultKey;
-use crate::items::payloads::decrypt_totp_payload;
+use crate::items::credential::mapping::LEGACY_CREDENTIAL_ITEM_TYPE;
+use crate::items::payloads::{decrypt_credential_payload, decrypt_totp_payload};
 use crate::items::repository::VaultItemRepository;
 use crate::items::totp::mapping::TOTP_ITEM_TYPE;
 
@@ -26,19 +27,44 @@ pub fn generate_totp_code(
 ) -> Result<GeneratedTotpCode, String> {
     let file_item = repository.find_file_item(item_id)?;
 
-    if file_item.item_type != TOTP_ITEM_TYPE {
-        return Err("Unsupported item type.".to_string());
+    match file_item.item_type.as_str() {
+        TOTP_ITEM_TYPE => {
+            let payload = decrypt_totp_payload(&file_item, vault_key)
+                .map_err(|_| "Could not generate TOTP code.".to_string())?;
+
+            generate_code_result(
+                &payload.secret,
+                &payload.algorithm,
+                payload.digits,
+                payload.period,
+            )
+        }
+        LEGACY_CREDENTIAL_ITEM_TYPE => {
+            let payload = decrypt_credential_payload(&file_item, vault_key)
+                .map_err(|_| "Could not generate TOTP code.".to_string())?;
+
+            let Some(totp) = payload.totp else {
+                return Err("Credential does not have a TOTP secret.".to_string());
+            };
+
+            generate_code_result(&totp.secret, &totp.algorithm, totp.digits, totp.period)
+        }
+        _ => Err("Unsupported item type.".to_string()),
     }
+}
 
-    let payload = decrypt_totp_payload(&file_item, vault_key)
-        .map_err(|_| "Could not generate TOTP code.".to_string())?;
-
+fn generate_code_result(
+    secret: &str,
+    algorithm: &str,
+    digits: u8,
+    period: u32,
+) -> Result<GeneratedTotpCode, String> {
     let timestamp = current_unix_timestamp()?;
-    let period = u64::from(payload.period);
+    let period = u64::from(period);
     let counter = timestamp / period;
     let expires_in = (period - (timestamp % period)) as u32;
-    let secret = decode_base32_secret(&payload.secret)?;
-    let code = generate_code(&secret, counter, &payload.algorithm, payload.digits)?;
+    let secret = decode_base32_secret(secret)?;
+    let code = generate_code(&secret, counter, algorithm, digits)?;
 
     Ok(GeneratedTotpCode { code, expires_in })
 }
@@ -139,27 +165,27 @@ mod tests {
     fn generates_sha1_totp_codes_from_rfc_vectors() {
         assert_eq!(
             generate_code(RFC_SECRET_SHA1, 59 / 30, "SHA1", 8).unwrap(),
-            "94287082",
+            "94287082"
         );
         assert_eq!(
             generate_code(RFC_SECRET_SHA1, 1_111_111_109 / 30, "SHA1", 8).unwrap(),
-            "07081804",
+            "07081804"
         );
         assert_eq!(
             generate_code(RFC_SECRET_SHA1, 1_111_111_111 / 30, "SHA1", 8).unwrap(),
-            "14050471",
+            "14050471"
         );
         assert_eq!(
             generate_code(RFC_SECRET_SHA1, 1_234_567_890 / 30, "SHA1", 8).unwrap(),
-            "89005924",
+            "89005924"
         );
         assert_eq!(
             generate_code(RFC_SECRET_SHA1, 2_000_000_000 / 30, "SHA1", 8).unwrap(),
-            "69279037",
+            "69279037"
         );
         assert_eq!(
             generate_code(RFC_SECRET_SHA1, 20_000_000_000 / 30, "SHA1", 8).unwrap(),
-            "65353130",
+            "65353130"
         );
     }
 
@@ -167,27 +193,27 @@ mod tests {
     fn generates_sha256_totp_codes_from_rfc_vectors() {
         assert_eq!(
             generate_code(RFC_SECRET_SHA256, 59 / 30, "SHA256", 8).unwrap(),
-            "46119246",
+            "46119246"
         );
         assert_eq!(
             generate_code(RFC_SECRET_SHA256, 1_111_111_109 / 30, "SHA256", 8).unwrap(),
-            "68084774",
+            "68084774"
         );
         assert_eq!(
             generate_code(RFC_SECRET_SHA256, 1_111_111_111 / 30, "SHA256", 8).unwrap(),
-            "67062674",
+            "67062674"
         );
         assert_eq!(
             generate_code(RFC_SECRET_SHA256, 1_234_567_890 / 30, "SHA256", 8).unwrap(),
-            "91819424",
+            "91819424"
         );
         assert_eq!(
             generate_code(RFC_SECRET_SHA256, 2_000_000_000 / 30, "SHA256", 8).unwrap(),
-            "90698825",
+            "90698825"
         );
         assert_eq!(
             generate_code(RFC_SECRET_SHA256, 20_000_000_000 / 30, "SHA256", 8).unwrap(),
-            "77737706",
+            "77737706"
         );
     }
 
@@ -195,27 +221,27 @@ mod tests {
     fn generates_sha512_totp_codes_from_rfc_vectors() {
         assert_eq!(
             generate_code(RFC_SECRET_SHA512, 59 / 30, "SHA512", 8).unwrap(),
-            "90693936",
+            "90693936"
         );
         assert_eq!(
             generate_code(RFC_SECRET_SHA512, 1_111_111_109 / 30, "SHA512", 8).unwrap(),
-            "25091201",
+            "25091201"
         );
         assert_eq!(
             generate_code(RFC_SECRET_SHA512, 1_111_111_111 / 30, "SHA512", 8).unwrap(),
-            "99943326",
+            "99943326"
         );
         assert_eq!(
             generate_code(RFC_SECRET_SHA512, 1_234_567_890 / 30, "SHA512", 8).unwrap(),
-            "93441116",
+            "93441116"
         );
         assert_eq!(
             generate_code(RFC_SECRET_SHA512, 2_000_000_000 / 30, "SHA512", 8).unwrap(),
-            "38618901",
+            "38618901"
         );
         assert_eq!(
             generate_code(RFC_SECRET_SHA512, 20_000_000_000 / 30, "SHA512", 8).unwrap(),
-            "47863826",
+            "47863826"
         );
     }
 

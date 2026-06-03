@@ -1,44 +1,46 @@
 use chrono::Utc;
 
 use crate::crypto::vault_key::VaultKey;
-use crate::items::login::mapping::{
-    encrypt_login_payload, login_description, login_detail, LOGIN_ITEM_TYPE,
+use crate::items::credential::mapping::{
+    credential_description, credential_detail, encrypt_credential_payload,
+    LEGACY_CREDENTIAL_ITEM_TYPE,
 };
-use crate::items::login::normalize::{
+use crate::items::credential::normalize::{
     normalize_optional_text, normalize_optional_website, normalize_required_title,
 };
-use crate::items::model::{UpdateLoginItemPayload, VaultItemDetail};
-use crate::items::payloads::decrypt_login_payload;
+use crate::items::model::{UpdateCredentialItemPayload, VaultItemDetail};
+use crate::items::payloads::decrypt_credential_payload;
 use crate::items::repository::VaultItemRepository;
 use crate::vault::format::{VaultFileItem, VaultItemMetadata};
 
-pub fn update_login_item(
+pub fn update_credential_item(
     repository: &VaultItemRepository<'_>,
     item_id: &str,
-    payload: Option<UpdateLoginItemPayload>,
+    payload: Option<UpdateCredentialItemPayload>,
     vault_key: &VaultKey,
 ) -> Result<VaultItemDetail, String> {
-    let Some(login) = payload else {
-        return Err("Login payload is required.".to_string());
+    let Some(credential) = payload else {
+        return Err("Credential payload is required.".to_string());
     };
-
-    let title = normalize_required_title(&login.title)?;
 
     let existing_file_item = repository.find_file_item(item_id)?;
 
-    if existing_file_item.item_type != LOGIN_ITEM_TYPE {
+    if existing_file_item.item_type != LEGACY_CREDENTIAL_ITEM_TYPE {
         return Err("Unsupported item type.".to_string());
     }
 
-    let existing_payload = decrypt_login_payload(&existing_file_item, vault_key)
+    let existing_payload = decrypt_credential_payload(&existing_file_item, vault_key)
         .map_err(|_| "Could not update item.".to_string())?;
 
-    let username = normalize_optional_text(login.username);
-    let website = normalize_optional_website(login.website)?;
-    let notes = normalize_optional_text(login.notes);
-    let description = login_description(&website);
+    let title = normalize_required_title(&credential.title)?;
+    let username = normalize_optional_text(credential.username);
+    let website = normalize_optional_website(credential.website)?;
+    let notes = normalize_optional_text(credential.notes);
+    let description = credential_description(&website);
+    let totp = existing_payload.totp;
+    let has_totp = totp.is_some();
 
-    let password = login
+    let password = credential
         .password
         .filter(|value| !value.is_empty())
         .unwrap_or(existing_payload.password);
@@ -46,19 +48,21 @@ pub fn update_login_item(
     let item_type = existing_file_item.item_type;
     let now = Utc::now().to_rfc3339();
 
-    let encrypted_payload = encrypt_login_payload(
+    let encrypted_payload = encrypt_credential_payload(
         item_id,
         &item_type,
         &title,
         username.clone(),
         password,
         website.clone(),
+        totp,
         notes.clone(),
         vault_key,
     )?;
 
     let file_item = VaultFileItem {
         id: item_id.to_string(),
+        list_id: existing_file_item.list_id.clone(),
         item_type,
         metadata: VaultItemMetadata {
             title: title.clone(),
@@ -71,12 +75,14 @@ pub fn update_login_item(
 
     repository.replace_file_item(item_id, file_item)?;
 
-    Ok(login_detail(
+    Ok(credential_detail(
         item_id.to_string(),
+        existing_file_item.list_id,
         title,
         description,
         username,
         website,
+        has_totp,
         notes,
     ))
 }

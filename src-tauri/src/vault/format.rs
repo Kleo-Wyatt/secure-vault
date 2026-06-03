@@ -17,6 +17,10 @@ pub struct VaultFile {
     pub updated_at: String,
     pub kdf: VaultKdfConfig,
     pub encrypted_vault_key: EncryptedVaultKey,
+
+    #[serde(default)]
+    pub lists: Vec<VaultFileList>,
+
     pub items: Vec<VaultFileItem>,
 }
 
@@ -35,12 +39,50 @@ pub struct VaultKdfConfig {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+pub struct VaultFileList {
+    pub id: String,
+    pub name: String,
+    pub template: VaultListTemplate,
+    pub created_at: String,
+    pub updated_at: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct VaultListTemplate {
+    #[serde(default)]
+    pub kind: VaultListKind,
+
+    #[serde(default, alias = "login")]
+    pub credentials: bool,
+    pub totp: bool,
+    pub notes: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum VaultListKind {
+    Credentials,
+    SeedPhrase,
+    BankCard,
+    SecureNote,
+}
+
+impl Default for VaultListKind {
+    fn default() -> Self {
+        Self::Credentials
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct VaultFileItem {
     pub id: String,
 
-    #[serde(rename = "type")]
-    pub item_type: String,
+    #[serde(default)]
+    pub list_id: Option<String>,
 
+    pub item_type: String,
     pub metadata: VaultItemMetadata,
     pub encrypted_payload: EncryptedPayload,
 }
@@ -123,6 +165,14 @@ impl VaultFileItem {
             return Err("Invalid item title.".to_string());
         }
 
+        if self
+            .list_id
+            .as_ref()
+            .is_some_and(|list_id| list_id.trim().is_empty())
+        {
+            return Err("Invalid item list id.".to_string());
+        }
+
         validate_encrypted_payload(&self.encrypted_payload)?;
 
         Ok(())
@@ -138,6 +188,7 @@ impl VaultFile {
             updated_at: now,
             kdf,
             encrypted_vault_key,
+            lists: Vec::new(),
             items: Vec::new(),
         }
     }
@@ -154,11 +205,63 @@ impl VaultFile {
         self.kdf.validate()?;
         validate_encrypted_vault_key(&self.encrypted_vault_key)?;
 
+        for list in &self.lists {
+            list.validate()?;
+        }
+
         for item in &self.items {
             item.validate()?;
         }
 
         Ok(())
+    }
+}
+
+impl VaultFileList {
+    pub fn validate(&self) -> Result<(), String> {
+        if self.id.trim().is_empty() {
+            return Err("Invalid list id.".to_string());
+        }
+
+        if self.name.trim().is_empty() {
+            return Err("Invalid list name.".to_string());
+        }
+
+        self.template.validate()?;
+
+        Ok(())
+    }
+}
+
+impl VaultListTemplate {
+    pub fn validate(&self) -> Result<(), String> {
+        match self.kind {
+            VaultListKind::Credentials => {
+                if !self.credentials && !self.totp {
+                    return Err("Credentials list must include credentials or TOTP.".to_string());
+                }
+
+                if !self.notes {
+                    return Err("Credentials list must include notes.".to_string());
+                }
+
+                Ok(())
+            }
+            VaultListKind::SeedPhrase | VaultListKind::BankCard => {
+                if self.credentials || self.totp || !self.notes {
+                    return Err("Invalid list template for this list kind.".to_string());
+                }
+
+                Ok(())
+            }
+            VaultListKind::SecureNote => {
+                if self.credentials || self.totp || self.notes {
+                    return Err("Invalid secure note list template.".to_string());
+                }
+
+                Ok(())
+            }
+        }
     }
 }
 
@@ -260,8 +363,10 @@ mod tests {
             updated_at: "2026-05-28T00:00:00Z".to_string(),
             kdf: kdf_config(),
             encrypted_vault_key: encrypted_vault_key(),
+            lists: Vec::new(),
             items: vec![VaultFileItem {
                 id: "item-1".to_string(),
+                list_id: None,
                 item_type: "login".to_string(),
                 metadata: VaultItemMetadata {
                     title: "Binance".to_string(),
@@ -283,6 +388,7 @@ mod tests {
 
         let item = VaultFileItem {
             id: "item-1".to_string(),
+            list_id: None,
             item_type: "login".to_string(),
             metadata: VaultItemMetadata {
                 title: "Binance".to_string(),
@@ -294,5 +400,95 @@ mod tests {
         };
 
         assert!(item.validate().is_err());
+    }
+
+    #[test]
+    fn validates_vault_file_with_lists() {
+        let vault_file = VaultFile {
+            format: VAULT_FORMAT.to_string(),
+            version: VAULT_VERSION,
+            created_at: "2026-05-28T00:00:00Z".to_string(),
+            updated_at: "2026-05-28T00:00:00Z".to_string(),
+            kdf: kdf_config(),
+            encrypted_vault_key: encrypted_vault_key(),
+            lists: vec![VaultFileList {
+                id: "list-1".to_string(),
+                name: "Crypto exchanges".to_string(),
+                template: VaultListTemplate {
+                    kind: VaultListKind::Credentials,
+                    credentials: true,
+                    totp: true,
+                    notes: true,
+                },
+                created_at: "2026-05-28T00:00:00Z".to_string(),
+                updated_at: "2026-05-28T00:00:00Z".to_string(),
+            }],
+            items: Vec::new(),
+        };
+
+        assert!(vault_file.validate().is_ok());
+    }
+
+    #[test]
+    fn rejects_credentials_list_without_login_or_totp() {
+        let vault_file = VaultFile {
+            format: VAULT_FORMAT.to_string(),
+            version: VAULT_VERSION,
+            created_at: "2026-05-28T00:00:00Z".to_string(),
+            updated_at: "2026-05-28T00:00:00Z".to_string(),
+            kdf: kdf_config(),
+            encrypted_vault_key: encrypted_vault_key(),
+            lists: vec![VaultFileList {
+                id: "list-1".to_string(),
+                name: "Invalid credentials list".to_string(),
+                template: VaultListTemplate {
+                    kind: VaultListKind::Credentials,
+                    credentials: false,
+                    totp: false,
+                    notes: true,
+                },
+                created_at: "2026-05-28T00:00:00Z".to_string(),
+                updated_at: "2026-05-28T00:00:00Z".to_string(),
+            }],
+            items: Vec::new(),
+        };
+
+        assert!(vault_file.validate().is_err());
+    }
+
+    #[test]
+    fn validates_seed_phrase_list_template() {
+        let template = VaultListTemplate {
+            kind: VaultListKind::SeedPhrase,
+            credentials: false,
+            totp: false,
+            notes: true,
+        };
+
+        assert!(template.validate().is_ok());
+    }
+
+    #[test]
+    fn validates_bank_card_list_template() {
+        let template = VaultListTemplate {
+            kind: VaultListKind::BankCard,
+            credentials: false,
+            totp: false,
+            notes: true,
+        };
+
+        assert!(template.validate().is_ok());
+    }
+
+    #[test]
+    fn validates_secure_note_list_template() {
+        let template = VaultListTemplate {
+            kind: VaultListKind::SecureNote,
+            credentials: false,
+            totp: false,
+            notes: false,
+        };
+
+        assert!(template.validate().is_ok());
     }
 }

@@ -1,3 +1,3 @@
-export { updateLoginItem } from './api/updateItem';
-export { EditLoginItemDialog } from './ui/EditLoginItemDialog';
-export type { UpdateLoginItemInput } from './model/types';
+export { updateCredentialItem } from './api/updateItem';
+export { EditCredentialItemDialog } from './ui/EditCredentialItemDialog';
+export type { UpdateCredentialItemInput } from './model/types';
