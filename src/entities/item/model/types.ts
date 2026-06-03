@@ -10,7 +10,7 @@ export type VaultItemSummary = {
   isHighSecurity?: boolean;
 };
 
-export type LoginItemDetail = VaultItemSummary & {
+export type CredentialItemDetail = VaultItemSummary & {
   type: 'login';
   username?: string;
   website?: string;
@@ -45,7 +45,7 @@ export type SecureNoteItemDetail = VaultItemSummary & {
 };
 
 export type VaultItemDetail =
-  | LoginItemDetail
+  | CredentialItemDetail
   | TotpItemDetail
   | SeedPhraseItemDetail
   | SecureNoteItemDetail;

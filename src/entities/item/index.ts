@@ -2,7 +2,7 @@ export { mockVaultItemDetails, mockVaultItems } from './model/mockItems';
 export { CredentialItemForm } from './ui/CredentialItemForm';
 export type { CredentialItemFormValues } from './model/credentialItemForm';
 export type {
-  LoginItemDetail,
+  CredentialItemDetail,
   SecureNoteItemDetail,
   SeedPhraseItemDetail,
   TotpItemDetail,
