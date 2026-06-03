@@ -2,7 +2,9 @@ use serde::{Deserialize, Serialize};
 
 use crate::crypto::item_payload::{build_item_aad, decrypt_item_payload};
 use crate::crypto::vault_key::VaultKey;
-use crate::items::credential::mapping::credential_detail_from_payload;
+use crate::items::credential::mapping::{
+    credential_detail_from_payload, LEGACY_CREDENTIAL_ITEM_TYPE,
+};
 use crate::items::model::VaultItemDetail;
 use crate::items::totp::mapping::totp_detail_from_payload;
 use crate::vault::format::{VaultFileItem, VAULT_VERSION};
@@ -59,7 +61,7 @@ pub fn decrypt_credential_payload(
     file_item: &VaultFileItem,
     vault_key: &VaultKey,
 ) -> Result<CredentialItemEncryptedPayload, String> {
-    if file_item.item_type != "login" {
+    if file_item.item_type != LEGACY_CREDENTIAL_ITEM_TYPE {
         return Err("Unsupported item type.".to_string());
     }
 
@@ -91,7 +93,7 @@ fn decrypt_file_item(
     vault_key: &VaultKey,
 ) -> Result<VaultItemDetail, String> {
     match file_item.item_type.as_str() {
-        "login" => decrypt_credential_item(file_item, vault_key),
+        LEGACY_CREDENTIAL_ITEM_TYPE => decrypt_credential_item(file_item, vault_key),
         "totp" => decrypt_totp_item(file_item, vault_key),
         _ => Err("Unsupported item type.".to_string()),
     }

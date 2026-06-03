@@ -10,6 +10,7 @@ use crate::commands::item_runtime::{
     insert_runtime_item, list_runtime_items, normalize_required_item_id, remove_runtime_item,
     replace_runtime_item, require_unlocked_vault_key, validate_password_secret_type,
 };
+use crate::items::credential::mapping::LEGACY_CREDENTIAL_ITEM_TYPE;
 use crate::items::credential::{
     create_credential_item, delete_credential_file_item, read_credential_password,
     update_credential_item,
@@ -36,7 +37,9 @@ pub async fn create_item(
     validate_create_item_list(&app, list_id.as_deref(), &args.item_type)?;
 
     let (item, file_item) = match args.item_type.as_str() {
-        "login" => create_credential_item(args.credential, list_id, &vault_key)?,
+        item_type if item_type == LEGACY_CREDENTIAL_ITEM_TYPE => {
+            create_credential_item(args.credential, list_id, &vault_key)?
+        }
         "totp" => create_totp_item(args.totp, list_id, &vault_key)?,
         _ => {
             return Err("Unsupported item type.".to_string());
@@ -60,7 +63,9 @@ pub async fn update_item(
     let repository = VaultItemRepository::new(&app);
 
     let item = match args.item_type.as_str() {
-        "login" => update_credential_item(&repository, &item_id, args.credential, &vault_key)?,
+        item_type if item_type == LEGACY_CREDENTIAL_ITEM_TYPE => {
+            update_credential_item(&repository, &item_id, args.credential, &vault_key)?
+        }
         _ => {
             return Err("Unsupported item type.".to_string());
         }
@@ -173,7 +178,9 @@ pub async fn delete_item(
     let file_item = repository.find_file_item(&item_id)?;
 
     match file_item.item_type.as_str() {
-        "login" => delete_credential_file_item(&repository, &item_id)?,
+        item_type if item_type == LEGACY_CREDENTIAL_ITEM_TYPE => {
+            delete_credential_file_item(&repository, &item_id)?;
+        }
         "totp" => delete_totp_file_item(&repository, &item_id)?,
         _ => {
             return Err("Unsupported item type.".to_string());
@@ -222,9 +229,11 @@ fn validate_item_type_allowed_by_template(
     template: &VaultListTemplate,
 ) -> Result<(), String> {
     match item_type {
-        "login" if template.credentials => Ok(()),
+        item_type if item_type == LEGACY_CREDENTIAL_ITEM_TYPE && template.credentials => Ok(()),
         "totp" if template.totp => Ok(()),
-        "login" | "totp" => Err("Item type is not enabled for this list.".to_string()),
+        item_type if item_type == LEGACY_CREDENTIAL_ITEM_TYPE || item_type == "totp" => {
+            Err("Item type is not enabled for this list.".to_string())
+        }
         _ => Err("Unsupported item type.".to_string()),
     }
 }
