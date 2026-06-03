@@ -19,7 +19,7 @@ use crate::items::model::VaultItemDetail;
 use crate::items::repository::VaultItemRepository;
 use crate::items::secure_note::{
     create_secure_note_item, delete_secure_note_file_item, read_secure_note_body,
-    SECURE_NOTE_ITEM_TYPE,
+    update_secure_note_item, SECURE_NOTE_ITEM_TYPE,
 };
 use crate::items::totp::{
     create_totp_item, delete_totp_file_item, generate_totp_code as generate_totp_code_from_item,
@@ -69,9 +69,12 @@ pub async fn update_item(
     let vault_key = require_unlocked_vault_key(&state)?;
     let repository = VaultItemRepository::new(&app);
 
-    let item = match args.item_type.as_str() {
+        let item = match args.item_type.as_str() {
         item_type if item_type == LEGACY_CREDENTIAL_ITEM_TYPE => {
             update_credential_item(&repository, &item_id, args.credential, &vault_key)?
+        }
+        SECURE_NOTE_ITEM_TYPE => {
+            update_secure_note_item(&repository, &item_id, args.secure_note, &vault_key)?
         }
         _ => {
             return Err("Unsupported item type.".to_string());

@@ -5,3 +5,8 @@ export type UpdateCredentialItemInput = {
   website?: string;
   notes?: string;
 };
+
+export type UpdateSecureNoteItemInput = {
+  title: string;
+  body: string;
+};

@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::items::model::{
     CreateCredentialItemPayload, CreateSecureNoteItemPayload, CreateTotpItemPayload,
-    UpdateCredentialItemPayload,
+    UpdateCredentialItemPayload, UpdateSecureNoteItemPayload,
 };
 
 #[derive(Debug, Deserialize)]
@@ -27,6 +27,8 @@ pub struct UpdateItemArgs {
 
     #[serde(default, alias = "login")]
     pub credential: Option<UpdateCredentialItemPayload>,
+
+    pub secure_note: Option<UpdateSecureNoteItemPayload>,
 }
 
 #[derive(Debug, Deserialize)]

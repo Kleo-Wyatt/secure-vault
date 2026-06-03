@@ -64,6 +64,13 @@ pub struct CreateSecureNoteItemPayload {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+pub struct UpdateSecureNoteItemPayload {
+    pub title: String,
+    pub body: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct VaultItemDetail {
     pub id: String,
     pub list_id: Option<String>,

@@ -61,7 +61,13 @@ export function ItemDetailPanel({
   }
 
   if (item.type === 'secure_note') {
-    return <SecureNoteDetail item={item} onItemDeleted={onItemDeleted} />;
+    return (
+      <SecureNoteDetail
+        item={item}
+        onItemDeleted={onItemDeleted}
+        onItemUpdated={onItemUpdated}
+      />
+    );
   }
 
   return <EmptyItemDetail />;

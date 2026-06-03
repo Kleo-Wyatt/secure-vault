@@ -1,6 +1,7 @@
-import { Eye, EyeOff, Trash2 } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 
 import type { VaultItemDetail } from '@/entities/item';
+import { EditSecureNoteItemDialog } from '@/features/update-item';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,11 +23,13 @@ type SecureNoteItem = Extract<VaultItemDetail, { type: 'secure_note' }>;
 type SecureNoteDetailProps = {
   item: SecureNoteItem;
   onItemDeleted?: (id: string) => void | Promise<void>;
+  onItemUpdated?: (item: VaultItemDetail) => void | Promise<void>;
 };
 
 export function SecureNoteDetail({
   item,
   onItemDeleted,
+  onItemUpdated,
 }: SecureNoteDetailProps) {
   const {
     revealedBody,
@@ -46,7 +49,17 @@ export function SecureNoteDetail({
     <section className="p-6">
       <Card className="max-w-2xl">
         <CardHeader>
-          <CardTitle>{item.title}</CardTitle>
+          <div className="flex items-start justify-between gap-4">
+            <CardTitle>{item.title}</CardTitle>
+
+            <EditSecureNoteItemDialog
+              item={item}
+              onUpdated={async (updatedItem) => {
+                hideBody();
+                await onItemUpdated?.(updatedItem);
+              }}
+            />
+          </div>
         </CardHeader>
 
         <CardContent className="space-y-6">
@@ -54,37 +67,39 @@ export function SecureNoteDetail({
             <p className="text-xs text-muted-foreground">Note</p>
 
             {revealedBody ? (
-              <div className="mt-2 whitespace-pre-wrap rounded-lg border bg-muted/30 p-4 text-sm">
+              <div
+                className="mt-2 whitespace-pre-wrap rounded-lg border bg-muted/40 px-3 py-2 text-sm selection:bg-primary selection:text-primary-foreground"
+                role="textbox"
+                aria-label="Revealed secure note"
+              >
                 {revealedBody}
               </div>
             ) : (
-              <div className="mt-2 rounded-lg border bg-muted/30 p-4 text-sm text-muted-foreground">
+              <code className="mt-2 block rounded-lg border bg-muted/40 px-3 py-2 text-sm">
                 {item.bodyPreview || 'Hidden until reveal.'}
-              </div>
+              </code>
             )}
+
+            <div className="mt-2 flex flex-wrap gap-2">
+              {revealedBody ? (
+                <Button variant="ghost" size="sm" onClick={hideBody}>
+                  Hide
+                </Button>
+              ) : (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleRevealBody(item.id)}
+                  disabled={isRevealingBody}
+                >
+                  {isRevealingBody ? 'Revealing...' : 'Reveal'}
+                </Button>
+              )}
+            </div>
 
             {revealError ? (
               <p className="mt-2 text-xs text-destructive">{revealError}</p>
             ) : null}
-
-            <div className="mt-3 flex gap-2">
-              {revealedBody ? (
-                <Button type="button" variant="outline" onClick={hideBody}>
-                  <EyeOff className="size-4" />
-                  Hide note
-                </Button>
-              ) : (
-                <Button
-                  type="button"
-                  variant="outline"
-                  disabled={isRevealingBody}
-                  onClick={() => handleRevealBody(item.id)}
-                >
-                  <Eye className="size-4" />
-                  {isRevealingBody ? 'Revealing...' : 'Reveal note'}
-                </Button>
-              )}
-            </div>
           </div>
 
           <div className="border-t pt-4">
