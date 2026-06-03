@@ -11,18 +11,18 @@ pub enum VaultItemType {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct CreateLoginItemPayload {
+pub struct CreateCredentialItemPayload {
     pub title: String,
     pub username: Option<String>,
     pub password: String,
     pub website: Option<String>,
-    pub totp: Option<CreateLoginItemTotpPayload>,
+    pub totp: Option<CreateCredentialItemTotpPayload>,
     pub notes: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct CreateLoginItemTotpPayload {
+pub struct CreateCredentialItemTotpPayload {
     pub issuer: Option<String>,
     pub account: Option<String>,
     pub secret: String,
@@ -33,7 +33,7 @@ pub struct CreateLoginItemTotpPayload {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct UpdateLoginItemPayload {
+pub struct UpdateCredentialItemPayload {
     pub title: String,
     pub username: Option<String>,
     pub password: Option<String>,

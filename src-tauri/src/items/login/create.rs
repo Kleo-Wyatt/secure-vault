@@ -9,19 +9,19 @@ use crate::items::login::normalize::{
     normalize_optional_login_totp, normalize_optional_text, normalize_optional_website,
     normalize_required_title,
 };
-use crate::items::model::{CreateLoginItemPayload, VaultItemDetail};
+use crate::items::model::{CreateCredentialItemPayload, VaultItemDetail};
 use crate::vault::format::{VaultFileItem, VaultItemMetadata};
 
 pub fn create_login_item(
-    payload: Option<CreateLoginItemPayload>,
+    payload: Option<CreateCredentialItemPayload>,
     list_id: Option<String>,
     vault_key: &VaultKey,
 ) -> Result<(VaultItemDetail, VaultFileItem), String> {
-    let Some(login) = payload else {
-        return Err("Login payload is required.".to_string());
+    let Some(credential) = payload else {
+        return Err("Credential payload is required.".to_string());
     };
 
-    if login.password.is_empty() {
+    if credential.password.is_empty() {
         return Err("Password is required.".to_string());
     }
 
@@ -29,11 +29,11 @@ pub fn create_login_item(
     let item_type = LOGIN_ITEM_TYPE.to_string();
     let now = Utc::now().to_rfc3339();
 
-    let title = normalize_required_title(&login.title)?;
-    let username = normalize_optional_text(login.username);
-    let website = normalize_optional_website(login.website)?;
-    let totp = normalize_optional_login_totp(login.totp)?;
-    let notes = normalize_optional_text(login.notes);
+    let title = normalize_required_title(&credential.title)?;
+    let username = normalize_optional_text(credential.username);
+    let website = normalize_optional_website(credential.website)?;
+    let totp = normalize_optional_login_totp(credential.totp)?;
+    let notes = normalize_optional_text(credential.notes);
     let description = login_description(&website);
     let has_totp = totp.is_some();
 
@@ -42,7 +42,7 @@ pub fn create_login_item(
         &item_type,
         &title,
         username.clone(),
-        login.password,
+        credential.password,
         website.clone(),
         totp.clone(),
         notes.clone(),

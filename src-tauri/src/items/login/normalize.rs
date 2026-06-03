@@ -1,4 +1,4 @@
-use crate::items::model::CreateLoginItemTotpPayload;
+use crate::items::model::CreateCredentialItemTotpPayload;
 use crate::items::payloads::LoginItemTotpEncryptedPayload;
 
 pub fn normalize_required_title(title: &str) -> Result<String, String> {
@@ -28,7 +28,7 @@ pub fn normalize_optional_website(value: Option<String>) -> Result<Option<String
 }
 
 pub fn normalize_optional_login_totp(
-    value: Option<CreateLoginItemTotpPayload>,
+    value: Option<CreateCredentialItemTotpPayload>,
 ) -> Result<Option<LoginItemTotpEncryptedPayload>, String> {
     let Some(value) = value else {
         return Ok(None);
