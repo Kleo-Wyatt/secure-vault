@@ -28,3 +28,9 @@ export type CreateTotpItemInput = {
   period?: number;
   notes?: string;
 };
+
+export type CreateSecureNoteItemInput = {
+  listId?: string;
+  title: string;
+  body: string;
+};

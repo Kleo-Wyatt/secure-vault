@@ -5,6 +5,7 @@ import { isCredentialItem, type VaultItemSummary } from '@/entities/item';
 import {
   CreateItemDialog,
   type CreateCredentialItemInput,
+  type CreateSecureNoteItemInput,
   type CreateTotpItemInput,
 } from '@/features/create-item';
 import type { VaultList } from '@/features/vault-lists';
@@ -19,6 +20,7 @@ type ItemListProps = {
   onSelectItem: (itemId: string) => void;
   onCreateCredential: (input: CreateCredentialItemInput) => void;
   onCreateTotp: (input: CreateTotpItemInput) => void;
+  onCreateSecureNote: (input: CreateSecureNoteItemInput) => void;
 };
 
 function getItemTypeLabel(item: VaultItemSummary) {
@@ -70,6 +72,7 @@ export function ItemList({
   onSelectItem,
   onCreateCredential,
   onCreateTotp,
+  onCreateSecureNote,
 }: ItemListProps) {
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -96,6 +99,7 @@ export function ItemList({
             selectedVaultList={selectedVaultList}
             onCreateCredential={onCreateCredential}
             onCreateTotp={onCreateTotp}
+            onCreateSecureNote={onCreateSecureNote}
           />
         ) : null}
       </div>
@@ -136,7 +140,7 @@ export function ItemList({
                     </p>
 
                     {description ? (
-                      <p className="mt-1 text-xs text-muted-foreground">
+                      <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
                         {description}
                       </p>
                     ) : null}

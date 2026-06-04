@@ -21,8 +21,9 @@ export function VaultPage({ onLock }: VaultPageProps) {
     handleSelectItem,
     handleSelectList,
     handleCreateVaultList,
-   handleCreateCredential,
+    handleCreateCredential,
     handleCreateTotp,
+    handleCreateSecureNote,
     handleItemUpdated,
     handleItemDeleted,
   } = useVaultItems();
@@ -46,6 +47,7 @@ export function VaultPage({ onLock }: VaultPageProps) {
           onSelectItem={handleSelectItem}
           onCreateCredential={handleCreateCredential}
           onCreateTotp={handleCreateTotp}
+          onCreateSecureNote={handleCreateSecureNote}
         />
       }
       detailPanel={

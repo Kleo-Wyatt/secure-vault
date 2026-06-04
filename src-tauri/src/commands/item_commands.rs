@@ -17,11 +17,15 @@ use crate::items::credential::{
 };
 use crate::items::model::VaultItemDetail;
 use crate::items::repository::VaultItemRepository;
+use crate::items::secure_note::{
+    create_secure_note_item, delete_secure_note_file_item, read_secure_note_body,
+    update_secure_note_item, SECURE_NOTE_ITEM_TYPE,
+};
 use crate::items::totp::{
     create_totp_item, delete_totp_file_item, generate_totp_code as generate_totp_code_from_item,
 };
 use crate::state::AppState;
-use crate::vault::format::VaultListTemplate;
+use crate::vault::format::{VaultListKind, VaultListTemplate};
 use crate::vault::storage::load_vault_file;
 
 #[tauri::command]
@@ -41,6 +45,9 @@ pub async fn create_item(
             create_credential_item(args.credential, Some(list_id), &vault_key)?
         }
         "totp" => create_totp_item(args.totp, Some(list_id), &vault_key)?,
+        SECURE_NOTE_ITEM_TYPE => {
+            create_secure_note_item(args.secure_note, Some(list_id), &vault_key)?
+        }
         _ => {
             return Err("Unsupported item type.".to_string());
         }
@@ -62,9 +69,12 @@ pub async fn update_item(
     let vault_key = require_unlocked_vault_key(&state)?;
     let repository = VaultItemRepository::new(&app);
 
-    let item = match args.item_type.as_str() {
+        let item = match args.item_type.as_str() {
         item_type if item_type == LEGACY_CREDENTIAL_ITEM_TYPE => {
             update_credential_item(&repository, &item_id, args.credential, &vault_key)?
+        }
+        SECURE_NOTE_ITEM_TYPE => {
+            update_secure_note_item(&repository, &item_id, args.secure_note, &vault_key)?
         }
         _ => {
             return Err("Unsupported item type.".to_string());
@@ -88,19 +98,28 @@ pub async fn reveal_secret(
     args: RevealSecretArgs,
 ) -> Result<RevealSecretResult, String> {
     let item_id = normalize_required_item_id(&args.id)?;
-    validate_password_secret_type(&args.secret_type)?;
-
     let vault_key = require_unlocked_vault_key(&state)?;
     let repository = VaultItemRepository::new(&app);
 
-    let password = read_credential_password(
-        &repository,
-        &item_id,
-        &vault_key,
-        "Could not reveal secret.",
-    )?;
+    let value = match args.secret_type.as_str() {
+        "password" => read_credential_password(
+            &repository,
+            &item_id,
+            &vault_key,
+            "Could not reveal secret.",
+        )?,
+        "secure_note_body" => read_secure_note_body(
+            &repository,
+            &item_id,
+            &vault_key,
+            "Could not reveal secure note.",
+        )?,
+        _ => {
+            return Err("Unsupported secret type.".to_string());
+        }
+    };
 
-    Ok(RevealSecretResult { value: password })
+    Ok(RevealSecretResult { value })
 }
 
 #[tauri::command]
@@ -182,6 +201,7 @@ pub async fn delete_item(
             delete_credential_file_item(&repository, &item_id)?;
         }
         "totp" => delete_totp_file_item(&repository, &item_id)?,
+        SECURE_NOTE_ITEM_TYPE => delete_secure_note_file_item(&repository, &item_id)?,
         _ => {
             return Err("Unsupported item type.".to_string());
         }
@@ -227,7 +247,12 @@ fn validate_item_type_allowed_by_template(
     match item_type {
         item_type if item_type == LEGACY_CREDENTIAL_ITEM_TYPE && template.credentials => Ok(()),
         "totp" if template.totp => Ok(()),
-        item_type if item_type == LEGACY_CREDENTIAL_ITEM_TYPE || item_type == "totp" => {
+        SECURE_NOTE_ITEM_TYPE if matches!(&template.kind, VaultListKind::SecureNote) => Ok(()),
+        item_type
+            if item_type == LEGACY_CREDENTIAL_ITEM_TYPE
+                || item_type == "totp"
+                || item_type == SECURE_NOTE_ITEM_TYPE =>
+        {
             Err("Item type is not enabled for this list.".to_string())
         }
         _ => Err("Unsupported item type.".to_string()),

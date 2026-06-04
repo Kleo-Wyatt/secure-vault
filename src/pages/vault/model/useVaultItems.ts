@@ -7,8 +7,10 @@ import {
 } from '@/entities/item';
 import {
   createCredentialItem,
+  createSecureNoteItem,
   createTotpItem,
   type CreateCredentialItemInput,
+  type CreateSecureNoteItemInput,
   type CreateTotpItemInput,
 } from '@/features/create-item';
 import { listItems } from '@/features/list-items';
@@ -192,6 +194,16 @@ export function useVaultItems() {
     setSelectedItemId(newItem.id);
   }
 
+  async function handleCreateSecureNote(input: CreateSecureNoteItemInput) {
+    const newItem = await createSecureNoteItem({
+      ...input,
+      listId: getRequiredCreateListId(selectedListId),
+    });
+
+    setItems((currentItems) => [newItem, ...currentItems]);
+    setSelectedItemId(newItem.id);
+  }
+
   async function handleCreateVaultList(input: CreateVaultListInput) {
     const newList = await createVaultList(input);
 
@@ -235,6 +247,7 @@ export function useVaultItems() {
     handleCreateVaultList,
     handleCreateCredential,
     handleCreateTotp,
+    handleCreateSecureNote,
     handleItemUpdated,
     handleItemDeleted,
   };

@@ -2,7 +2,7 @@ import { callTauriCommand } from '@/shared/api/tauri';
 
 type RevealSecretArgs = {
   id: string;
-  secretType: 'password';
+  secretType: 'password' | 'secure_note_body';
 };
 
 type RevealSecretResult = {

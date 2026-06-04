@@ -6,6 +6,7 @@ use crate::items::credential::mapping::{
     credential_detail_from_payload, LEGACY_CREDENTIAL_ITEM_TYPE,
 };
 use crate::items::model::VaultItemDetail;
+use crate::items::secure_note::mapping::{secure_note_detail_from_payload, SECURE_NOTE_ITEM_TYPE};
 use crate::items::totp::mapping::totp_detail_from_payload;
 use crate::vault::format::{VaultFileItem, VAULT_VERSION};
 
@@ -45,6 +46,13 @@ pub struct TotpItemEncryptedPayload {
     pub digits: u8,
     pub period: u32,
     pub notes: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SecureNoteItemEncryptedPayload {
+    pub title: String,
+    pub body: String,
 }
 
 pub fn decrypt_file_items(
@@ -88,6 +96,22 @@ pub fn decrypt_totp_payload(
     serde_json::from_slice(&plaintext).map_err(|_| "Could not parse TOTP item payload.".to_string())
 }
 
+pub fn decrypt_secure_note_payload(
+    file_item: &VaultFileItem,
+    vault_key: &VaultKey,
+) -> Result<SecureNoteItemEncryptedPayload, String> {
+    if file_item.item_type != SECURE_NOTE_ITEM_TYPE {
+        return Err("Unsupported item type.".to_string());
+    }
+
+    let aad = build_item_aad(&file_item.id, &file_item.item_type, VAULT_VERSION);
+
+    let plaintext = decrypt_item_payload(&file_item.encrypted_payload, vault_key, &aad)?;
+
+    serde_json::from_slice(&plaintext)
+        .map_err(|_| "Could not parse secure note payload.".to_string())
+}
+
 fn decrypt_file_item(
     file_item: &VaultFileItem,
     vault_key: &VaultKey,
@@ -95,6 +119,7 @@ fn decrypt_file_item(
     match file_item.item_type.as_str() {
         LEGACY_CREDENTIAL_ITEM_TYPE => decrypt_credential_item(file_item, vault_key),
         "totp" => decrypt_totp_item(file_item, vault_key),
+        SECURE_NOTE_ITEM_TYPE => decrypt_secure_note_item(file_item, vault_key),
         _ => Err("Unsupported item type.".to_string()),
     }
 }
@@ -119,6 +144,19 @@ fn decrypt_totp_item(
     let payload = decrypt_totp_payload(file_item, vault_key)?;
 
     Ok(totp_detail_from_payload(
+        file_item.id.clone(),
+        file_item.list_id.clone(),
+        payload,
+    ))
+}
+
+fn decrypt_secure_note_item(
+    file_item: &VaultFileItem,
+    vault_key: &VaultKey,
+) -> Result<VaultItemDetail, String> {
+    let payload = decrypt_secure_note_payload(file_item, vault_key)?;
+
+    Ok(secure_note_detail_from_payload(
         file_item.id.clone(),
         file_item.list_id.clone(),
         payload,

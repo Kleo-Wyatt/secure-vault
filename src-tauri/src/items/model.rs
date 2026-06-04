@@ -57,6 +57,20 @@ pub struct CreateTotpItemPayload {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+pub struct CreateSecureNoteItemPayload {
+    pub title: String,
+    pub body: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct UpdateSecureNoteItemPayload {
+    pub title: String,
+    pub body: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct VaultItemDetail {
     pub id: String,
     pub list_id: Option<String>,
@@ -81,6 +95,7 @@ pub struct VaultItemDetail {
     pub has_totp: Option<bool>,
 
     pub notes: Option<String>,
+    pub body_preview: Option<String>,
 
     pub is_high_security: Option<bool>,
 }

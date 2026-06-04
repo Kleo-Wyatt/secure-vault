@@ -71,6 +71,7 @@ pub fn totp_detail(
         expires_in: None,
         has_totp: None,
         notes,
+        body_preview: None,
         is_high_security: None,
     }
 }

@@ -4,6 +4,7 @@ import {
 } from '@/entities/item';
 import type {
   CreateCredentialItemInput,
+  CreateSecureNoteItemInput,
   CreateTotpItemInput,
 } from '@/features/create-item/model/types';
 import { callTauriCommand } from '@/shared/api/tauri';
@@ -18,6 +19,12 @@ type CreateTotpItemArgs = {
   itemType: 'totp';
   listId?: string;
   totp: Omit<CreateTotpItemInput, 'listId'>;
+};
+
+type CreateSecureNoteItemArgs = {
+  itemType: 'secure_note';
+  listId?: string;
+  secureNote: Omit<CreateSecureNoteItemInput, 'listId'>;
 };
 
 export function createCredentialItem(input: CreateCredentialItemInput) {
@@ -45,6 +52,21 @@ export function createTotpItem(input: CreateTotpItemInput) {
         itemType: 'totp',
         listId,
         totp,
+      },
+    },
+  );
+}
+
+export function createSecureNoteItem(input: CreateSecureNoteItemInput) {
+  const { listId, ...secureNote } = input;
+
+  return callTauriCommand<VaultItemDetail, { args: CreateSecureNoteItemArgs }>(
+    'create_item',
+    {
+      args: {
+        itemType: 'secure_note',
+        listId,
+        secureNote,
       },
     },
   );
